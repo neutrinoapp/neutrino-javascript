@@ -1,6 +1,8 @@
-var NeutrinoData = require('./neutrinoData');
+'use strict';
 
-export class Neutrino {
+let NeutrinoData = require('./neutrinoData');
+
+class Neutrino {
     appId: string;
 
     constructor(appId: string) {
@@ -8,6 +10,8 @@ export class Neutrino {
     }
 
     use(type: string): NeutrinoData {
-         return new NeutrinoData(type);
+         return new NeutrinoData(this, type);
     }
 }
+
+module.exports = Neutrino;

@@ -1,3 +1,7 @@
+'use strict';
+
+let HttpClient = require('./httpClient');
+
 type NeutrinoOptions = {
     once: boolean
 }
@@ -5,10 +9,14 @@ type NeutrinoOptions = {
 class NeutrinoData {
     dataType: string;
     options: NeutrinoOptions;
+    httpClient: HttpClient;
+    client: Neutrino;
 
-    constructor(dataType: string) {
+    constructor(client: Neutrino, dataType: string) {
+        this.client = client;
         this.dataType = dataType;
-        this.options = new NeutrinoOptions();
+        this.options = {};
+        this.httpClient = new HttpClient(this.client);
     }
 
     once(): NeutrinoData {
