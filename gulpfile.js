@@ -1,41 +1,48 @@
+'use strict';
+
 var gulp = require('gulp');
 var browserify = require('browserify');
+//var mocha = require('gulp-mocha');
+var babelify = require('babelify');
 var source = require('vinyl-source-stream');
 var rename = require('gulp-rename');
-var uglify = require('gulp-uglify');
 var exorcist = require('exorcist');
-var reactify = require('reactify');
-var streamify = require('gulp-streamify');
-var ignore = require('gulp-ignore');
-var sourcemaps = require('gulp-sourcemaps');
-var reacttools = require('react-tools');
-var fs = require('fs');
+var watch = require('gulp-watch');
 
-var reactifyES6 = function(file) {
-    return reacttools.transform(fs.readFileSync(file), {
-        sourceMap: true,
-        harmony: true,
-        sourceFilename: 'neutrino.map',
-        stripTypes: true,
-        es6module: true,
-        target: 'es5'
-    })
+var main = './src/neutrino.js';
+
+var opts = {
+    entries: [main],
+    debug: true,
+    standalone: 'Neutrino'
 };
 
-gulp.task('build', function () {
-    var main = './src/neutrino.js';
+var b = browserify(opts)
+    .transform(babelify.configure({
+        presets: ['babel-preset-es2015']
+        //optional: ['runtime']
+    }));
 
-    var bundler = browserify({
-        entries: [main],
-        debug: true,
-        standalone: 'Neutrino',
-        transform: [reactifyES6]
-    });
-
-    bundler.bundle()
+var build = function (done) {
+    console.log('Building Neutrino....');
+    b.bundle()
         .on('error', console.log)
+        .on('end', function () {
+            console.log('Done');
+            done || done();
+        })
         .pipe(exorcist('./dist/neutrino.map'))
         .pipe(source(main))
         .pipe(rename('./neutrino.js'))
         .pipe(gulp.dest('./dist'));
+};
+
+gulp.task('build', build);
+
+gulp.task('test', ['build'], function () {
+    gulp.src('./test/neutrino-test.js')
+        .pipe(mocha())
+        .once('end', function () {
+            process.exit();
+        });
 });

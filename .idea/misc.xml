@@ -20,7 +20,7 @@
     </annotationProcessing>
   </component>
   <component name="JavaScriptSettings">
-    <option name="languageLevel" value="FLOW" />
+    <option name="languageLevel" value="ES6" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -31,5 +31,8 @@
     <OptionsSetting value="true" id="Edit" />
     <ConfirmationsSetting value="0" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectPlainTextFileTypeManager">
+    <file url="file://$PROJECT_DIR$/dist/neutrino.js" />
   </component>
 </project>
