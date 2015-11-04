@@ -3,8 +3,8 @@
 import Client from 'axios';
 
 export default class HttpClient {
-    constructor(client) {
-        this.client = client;
+    constructor(app) {
+        this.app = app;
     }
 
     _buildRequest(urls, method, data, optionalHeaders) {
@@ -12,13 +12,13 @@ export default class HttpClient {
         let headers = {};
         Object.assign(headers, optionalHeaders);
 
-        if (this.client.token) {
-            headers.Authorization = 'Bearer ' + this.client.token;
+        if (this.app.token) {
+            headers.Authorization = 'Bearer ' + this.app.token;
         }
 
         let requestOptions = {
             method: method,
-            url: this.client.appHost + path,
+            url: this.app.appHost + path,
             headers: headers
         };
 
@@ -26,15 +26,36 @@ export default class HttpClient {
             requestOptions.data = data;
         }
 
-        return Client(requestOptions);
+        return new Promise((resolve, reject) => {
+            Client(requestOptions)
+                .then((res) => {
+                    res.data = res.data || {};
+                    return resolve(res);
+                })
+                .catch(reject);
+        });
+    }
+
+    _buildDataRequest(type, method, data, id) {
+        var urls = ['data', type];
+        if (id) {
+            urls.push(id);
+        }
+
+        return this._buildRequest(urls, method, data, {})
+            .then((res) => {
+                return res.data;
+            });
+    }
+
+    get(type, id) {
+        return this._buildDataRequest(type, 'GET', null, id);
     }
 
     login(email, password) {
         return this._buildRequest(['login'], 'POST', {
             email: email,
             password: password
-        }).then((body) => {
-            this.token = body.token;
         });
     }
 
