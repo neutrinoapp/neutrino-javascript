@@ -52,6 +52,13 @@ export default class HttpClient {
         return this._buildDataRequest(type, 'GET', null, id);
     }
 
+    create(type, obj) {
+        return this._buildDataRequest(type, 'POST', obj, null)
+            .then((res) => {
+                return res._id;
+            })
+    }
+
     login(email, password) {
         return this._buildRequest(['login'], 'POST', {
             email: email,

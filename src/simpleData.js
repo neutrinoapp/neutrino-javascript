@@ -30,6 +30,10 @@ export default class SimpleNeutrinoData extends NeutrinoData {
         return this.httpClient.get(this.dataType, this._getId(id));
     }
 
+    create(obj) {
+        return this.httpClient.create(this.dataType, obj);
+    }
+
     remove(id) {
         return new Promise();
     }
