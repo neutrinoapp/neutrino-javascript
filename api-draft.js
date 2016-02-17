@@ -15,61 +15,38 @@ app.auth.register(u, u)
         return app.auth.login(u, u);
     })
     .then(function (res) {
-        console.log(res.data)
-        console.log(app.token)
+        console.log(res.data);
+        console.log(app.token);
     })
-    .then(doStuff)
+    .then(doStuff);
 
 function doStuff() {
-    // realtime objects (returned from the realtime api) are special, they have methods and their properties are observed
-    // when a property changes it is automatically updated using websockets on the servers and all clients
+    var cars = app.use('car');
 
-    // http objects are plain javascript objects with no special methods or functions, they are just the response from an AJAX call
+    //args:
 
-    // ------------------ Variant 1
+    //id: the object id. If there is such item from the server, its data will be into the returned object
+    //if an id is not passed simply an empty object is created on the server
+    //if an object instead of id is passed, the data will be created on the server
 
-    var d = app.use(col) //realtime mode by default
-    var d2 = app.useSimple(col) // simple (http) mode, no realtime updates, only AJAX calls
-    console.log(d);
+    //realtime: a boolean defining whether the returned object will be updated in realtime, automatically
+    cars.object('carId', true|false)
+        .then((car) => {
+            car.make = 'Fiat';
+            car.model = 'Stilo';
+            delete car.year; //the field will be removed when updated
+            //if realtime the data will be updated automatically
 
-    //usage - realtime - default
+            //if the item is ajax we must commit the changes manually:
+            car.update();
 
-    //var realtimeObj = d.object('id');
-    //realtimeObj.pesho = 'pesho'; //immediately updated on the server
-    //delete realtimeObj.pesho //immediately updated
-    //same for arrays
+            //other operations:
+            car.get(); //gets the item from the server
+            car.remove(); //removes the item from the server
 
-    //realtimeObj.remove(); //removes the object from the app's cars collection
-    //realtimeObj.raw(); //raw json
+            //all of the ops return promises
+        });
 
+    cars.remove('someId');
 
-    //usage - http - simple
-
-    var jsonObject = d2.get(id)
-        .then(function (data) {
-            console.log(data);
-        })
-
-    var allData = d2.get()
-        .then(function (data) {
-            console.log(data)
-        })
-
-//     var filtered = d2.get({
-//         pesho: 'pesho'
-//     }) //with filter
-
-    // partially update object's specific fields
-//     d2.update('id', {
-//         pesho: 'pesho'
-//     })
-
-    //set an object straight away, overriding anything else
-    //if an id is not provided the object should have an _id field
-//     jsonObject.pesho = 'pesho';
-//     d2.set('id', jsonObject)
-//     d2.set(jsonObject)
-
-//     d2.remove('id')
-//     d2.remove(jsonObject) // if the object has _id property it can be passed
 }

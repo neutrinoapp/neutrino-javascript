@@ -1,14 +1,16 @@
 'use strict';
 
-import HttpClient from './httpClient';
+import {HttpClient} from './httpClient';
+import {App} from './neutrino'
 
 export default class NeutrinoAuth {
-    constructor(app) {
-        this.app = app;
+    constructor(
+        private app: App
+    ) {
         this.httpClient = new HttpClient(app);
     }
 
-    login(email, password) {
+    login(email, password): Promise {
         return this.httpClient.login(email, password)
             .then((res) => {
                 this.app.token = res.data.token;
@@ -16,7 +18,7 @@ export default class NeutrinoAuth {
             });
     }
 
-    register(email, password) {
+    register(email, password): Promise {
         return this.httpClient.register(email, password);
     }
 }

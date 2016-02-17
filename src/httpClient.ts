@@ -1,22 +1,36 @@
 'use strict';
 
-import Client from 'axios';
+const Client = require('axios');
 
-export default class HttpClient {
-    constructor(app) {
-        this.app = app;
-    }
+import {App} from './neutrino'
+
+interface HttpHeaders {
+    Authorization?: string;
+}
+
+interface RequestOptions {
+    method: string;
+    url: string;
+    headers: HttpHeaders;
+    data?: {};
+}
+
+export class HttpClient {
+    constructor(
+        public app: App
+    ) {}
 
     _buildRequest(urls, method, data, optionalHeaders) {
         let path = urls.join('/');
-        let headers = {};
+        let headers: HttpHeaders = {};
+
         Object.assign(headers, optionalHeaders);
 
         if (this.app.token) {
             headers.Authorization = 'Bearer ' + this.app.token;
         }
 
-        let requestOptions = {
+        let requestOptions: RequestOptions = {
             method: method,
             url: this.app.appHost + path,
             headers: headers

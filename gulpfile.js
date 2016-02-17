@@ -8,34 +8,42 @@ var source = require('vinyl-source-stream');
 var rename = require('gulp-rename');
 var exorcist = require('exorcist');
 var watch = require('gulp-watch');
+var tsify = require('tsify');
+var watchify = require('watchify');
 
-var main = './src/neutrino.js';
+var main = './src/neutrino.ts';
 
 var opts = {
     entries: [main],
     debug: true,
-    standalone: 'Neutrino'
+    standalone: 'Neutrino',
+    cache: {},
+    packageCache: {}
 };
 
 var b = browserify(opts)
+    .plugin(watchify)
+    .plugin(tsify, {
+        target: 'es6'
+    })
     .transform(babelify.configure({
         presets: ['babel-preset-es2015']
         //optional: ['runtime']
     }));
 
-var build = function (done) {
+b.on('error', console.log);
+b.on('update', build);
+
+function build(done) {
     console.log('Building Neutrino....');
     b.bundle()
-        .on('error', console.log)
-        .on('end', function () {
-            console.log('Done');
-            done || done();
-        })
         .pipe(exorcist('./dist/neutrino.map'))
         .pipe(source(main))
         .pipe(rename('./neutrino.js'))
         .pipe(gulp.dest('./dist'));
-};
+
+    console.log('Done!');
+}
 
 gulp.task('build', build);
 
