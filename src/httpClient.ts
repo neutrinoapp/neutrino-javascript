@@ -1,8 +1,6 @@
 'use strict';
 
-/// <reference path="./definitions/node.d.ts" />
-
-import Client = require('axios')
+import * as Client from 'axios'
 import {App} from './neutrino'
 
 interface HttpHeaders {

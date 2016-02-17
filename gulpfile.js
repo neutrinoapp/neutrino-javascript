@@ -2,7 +2,7 @@
 
 var gulp = require('gulp');
 var browserify = require('browserify');
-//var mocha = require('gulp-mocha');
+// var mocha = require('gulp-mocha');
 var babelify = require('babelify');
 var source = require('vinyl-source-stream');
 var rename = require('gulp-rename');
@@ -10,28 +10,37 @@ var exorcist = require('exorcist');
 var watch = require('gulp-watch');
 var tsify = require('tsify');
 var watchify = require('watchify');
+var walkSync = require('walk-sync');
 
 var main = './src/neutrino.ts';
 
 var opts = {
-    entries: [main],
     debug: true,
     standalone: 'Neutrino',
     cache: {},
     packageCache: {}
 };
 
+// walkSync('src').forEach(function(file) {
+//     opts.entries.push('./src/' + file);
+// });
+
 var b = browserify(opts)
-    .plugin(watchify)
     .plugin(tsify, {
-        target: 'es6',
-        sourceType: 'module'
+        target: 'es6'
     })
+    .plugin(watchify)
     .transform(babelify.configure({
-        presets: ['es2015', 'stage-0'],
-        extensions: ['es6']
-        //optional: ['runtime']
-    }));
+        presets: ['es2015', 'stage-0']
+    }))
+    .require('./src/neutrino.ts', { entry: true });
+
+walkSync('typings').forEach(function(file) {
+    if (file.match(/\.d\.ts$/)) {
+        console.log('Adding typing: ' + file);
+        b.add('typings/' + file);
+    }
+});
 
 b.on('update', build);
 
