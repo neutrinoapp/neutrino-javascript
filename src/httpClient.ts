@@ -1,7 +1,8 @@
 'use strict';
 
-const Client = require('axios');
+/// <reference path="./definitions/node.d.ts" />
 
+import Client = require('axios')
 import {App} from './neutrino'
 
 interface HttpHeaders {
@@ -20,7 +21,7 @@ export class HttpClient {
         public app: App
     ) {}
 
-    _buildRequest(urls, method, data, optionalHeaders) {
+    _buildRequest(urls: string[], method: string, data: any, optionalHeaders?: any): Promise<any> {
         let path = urls.join('/');
         let headers: HttpHeaders = {};
 
@@ -42,7 +43,7 @@ export class HttpClient {
 
         return new Promise((resolve, reject) => {
             Client(requestOptions)
-                .then((res) => {
+                .then((res: any) => {
                     res.data = res.data || {};
                     return resolve(res);
                 })
@@ -50,7 +51,7 @@ export class HttpClient {
         });
     }
 
-    _buildDataRequest(type, method, data, id) {
+    _buildDataRequest(type: string, method: string, data: any, id: string): Promise<any> {
         var urls = ['data', type];
         if (id) {
             urls.push(id);
@@ -62,25 +63,25 @@ export class HttpClient {
             });
     }
 
-    get(type, id) {
+    get(type: string, id: string): Promise<any> {
         return this._buildDataRequest(type, 'GET', null, id);
     }
 
-    create(type, obj) {
+    create(type: string, obj: any): Promise<any> {
         return this._buildDataRequest(type, 'POST', obj, null)
-            .then((res) => {
+            .then((res: any) => {
                 return res._id;
             })
     }
 
-    login(email, password) {
+    login(email: string, password: string): Promise<any> {
         return this._buildRequest(['login'], 'POST', {
             email: email,
             password: password
         });
     }
 
-    register(email, password) {
+    register(email: string, password: string): Promise<any> {
         return this._buildRequest(['register'], 'POST', {
             email: email,
             password: password

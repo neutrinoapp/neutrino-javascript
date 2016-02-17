@@ -24,25 +24,28 @@ var opts = {
 var b = browserify(opts)
     .plugin(watchify)
     .plugin(tsify, {
-        target: 'es6'
+        target: 'es6',
+        sourceType: 'module'
     })
     .transform(babelify.configure({
-        presets: ['babel-preset-es2015']
+        presets: ['es2015', 'stage-0'],
+        extensions: ['es6']
         //optional: ['runtime']
     }));
 
-b.on('error', console.log);
 b.on('update', build);
 
 function build(done) {
     console.log('Building Neutrino....');
     b.bundle()
+        .on('error', console.log)
+        .on('end', () => {
+            console.log('Done!');
+        })
         .pipe(exorcist('./dist/neutrino.map'))
         .pipe(source(main))
         .pipe(rename('./neutrino.js'))
         .pipe(gulp.dest('./dist'));
-
-    console.log('Done!');
 }
 
 gulp.task('build', build);

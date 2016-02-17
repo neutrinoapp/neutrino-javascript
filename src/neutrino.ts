@@ -1,11 +1,11 @@
 'use strict';
 
-import NeutrinoAuth from './auth'
-import SimpleNeutrinoData from './simpleData'
-import RealtimeNeutrinoData from './realtimeData'
+import {Authentication} from './auth'
+import {AjaxData} from './ajaxData'
+import {RealtimeData} from './realtimeData'
 
 interface AppOptions {
-    host: string
+    host?: string
 }
 
 interface AppCache {
@@ -13,12 +13,13 @@ interface AppCache {
 }
 
 export class App {
-    public host: string;
-    public appHost: string;
-    public token: string = '';
+    host: string;
+    appHost: string;
+    token: string = '';
+    auth: Authentication;
 
-    private realtimeDataCache: AppCache = {};
-    private simpleDataCache: AppCache = {};
+    private _realtimeDataCache: AppCache = {};
+    private _simpleDataCache: AppCache = {};
 
     constructor(
         public appId: string,
@@ -28,26 +29,26 @@ export class App {
         this.host = opts.host || 'http://localhost:5000/v1/';
         this.appHost = this.host + 'app/' + this.appId + '/';
 
-        this.auth = new NeutrinoAuth(this);
+        this.auth = new Authentication(this);
     }
 
     use(type): any {
-        if (!this.realtimeDataCache[type]) {
-            this.realtimeDataCache[type] = new RealtimeNeutrinoData(this, type);
+        if (!this._realtimeDataCache[type]) {
+            this._realtimeDataCache[type] = new RealtimeData(this, type);
         }
 
-        return this.realtimeDataCache[type];
+        return this._realtimeDataCache[type];
     }
 
     useSimple(type): any {
-        if (!this.simpleDataCache[type]) {
-            this.simpleDataCache[type] = new SimpleNeutrinoData(this, type);
+        if (!this._simpleDataCache[type]) {
+            this._simpleDataCache[type] = new AjaxData(this, type);
         }
 
-        return this.simpleDataCache[type];
+        return this._simpleDataCache[type];
     }
 
-    static app(appId) {
+    static app(appId): App {
         return new App(appId);
     }
 }

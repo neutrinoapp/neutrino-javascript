@@ -3,14 +3,16 @@
 import {HttpClient} from './httpClient';
 import {App} from './neutrino'
 
-export default class NeutrinoAuth {
+export class Authentication {
+    httpClient: HttpClient;
+
     constructor(
         private app: App
     ) {
         this.httpClient = new HttpClient(app);
     }
 
-    login(email, password): Promise {
+    login(email: string, password: string): Promise<any> {
         return this.httpClient.login(email, password)
             .then((res) => {
                 this.app.token = res.data.token;
@@ -18,7 +20,7 @@ export default class NeutrinoAuth {
             });
     }
 
-    register(email, password): Promise {
+    register(email: string, password: string): Promise<any> {
         return this.httpClient.register(email, password);
     }
 }

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="modules" type="javaScript">
+    <properties>
+      <option name="frameworkName" value="node_modules" />
+    </properties>
+    <CLASSES />
+    <SOURCES />
+  </library>
+</component>

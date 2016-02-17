@@ -1,10 +1,16 @@
 'use strict';
 
-import NeutrinoData from './data'
-import HttpClient from './httpClient'
+import {App} from './neutrino'
+import {Data} from './data'
+import {HttpClient} from './httpClient'
 
-export default class SimpleNeutrinoData extends NeutrinoData {
-    constructor(app, dataType) {
+export class AjaxData extends Data {
+    httpClient: HttpClient;
+
+    constructor(
+        public app: App,
+        public dataType: string
+    ) {
         super(app, dataType);
         this.httpClient = new HttpClient(this.app);
     }
@@ -18,12 +24,11 @@ export default class SimpleNeutrinoData extends NeutrinoData {
     }
 
     set(id) {
-
-        return new Promise();
+        return new Promise(()=>{});
     }
 
     update(id) {
-        return new Promise();
+        return new Promise(()=>{});
     }
 
     get(id) {
@@ -35,6 +40,6 @@ export default class SimpleNeutrinoData extends NeutrinoData {
     }
 
     remove(id) {
-        return new Promise();
+        return new Promise(()=>{});
     }
 }
