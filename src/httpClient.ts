@@ -1,6 +1,7 @@
 'use strict';
 
-import * as Client from 'axios'
+declare var require;
+const Client = require('axios');
 import {App} from './neutrino'
 
 interface HttpHeaders {
@@ -45,7 +46,10 @@ export class HttpClient {
                     res.data = res.data || {};
                     return resolve(res);
                 })
-                .catch(reject);
+                .catch((err) => {
+                    console.log(err);
+                    return reject(err);
+                });
         });
     }
 
@@ -65,11 +69,19 @@ export class HttpClient {
         return this._buildDataRequest(type, 'GET', null, id);
     }
 
-    create(type: string, obj: any): Promise<any> {
+    create(type: string, obj: any): Promise<string> {
         return this._buildDataRequest(type, 'POST', obj, null)
             .then((res: any) => {
                 return res._id;
             })
+    }
+
+    update(type: string, id: string, obj: any): Promise<any> {
+        return this._buildDataRequest(type, 'PUT', obj, id);
+    }
+
+    delete(type: string, id: string): Promise<any> {
+        return this._buildDataRequest(type, 'DELETE', null, id);
     }
 
     login(email: string, password: string): Promise<any> {

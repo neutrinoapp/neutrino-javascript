@@ -1,15 +1,14 @@
 'use strict';
 
 import {Authentication} from './auth'
-import {AjaxData} from './ajaxData'
-import {RealtimeData} from './realtimeData'
+import {Data} from './data'
 
 interface AppOptions {
     host?: string
 }
 
 interface AppCache {
-    [index: string]: any;
+    [index: string]: Data;
 }
 
 export class App {
@@ -18,8 +17,7 @@ export class App {
     token: string = '';
     auth: Authentication;
 
-    private _realtimeDataCache: AppCache = {};
-    private _simpleDataCache: AppCache = {};
+    private _dataCache: AppCache = {};
 
     constructor(
         public appId: string,
@@ -32,23 +30,23 @@ export class App {
         this.auth = new Authentication(this);
     }
 
-    use(type): any {
-        if (!this._realtimeDataCache[type]) {
-            this._realtimeDataCache[type] = new RealtimeData(this, type);
+    use(type: string): Data {
+        if (!this._dataCache[type]) {
+            this._dataCache[type] = new Data(this, type);
         }
 
-        return this._realtimeDataCache[type];
-    }
-
-    useSimple(type): any {
-        if (!this._simpleDataCache[type]) {
-            this._simpleDataCache[type] = new AjaxData(this, type);
-        }
-
-        return this._simpleDataCache[type];
+        return this._dataCache[type];
     }
 
     static app(appId): App {
         return new App(appId);
     }
+}
+
+if (typeof window !== 'undefined') {
+    window['Neutrino'] = App;
+} else if (typeof module !== 'undefined') {
+    module['exports'] = App;
+} else {
+    this['Neutrino'] = App;
 }
