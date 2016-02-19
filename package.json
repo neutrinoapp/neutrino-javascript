@@ -51,8 +51,11 @@
   "dependencies": {
     "axios": "^0.7.0",
     "deep-diff": "^0.3.3",
+    "eventemitter3": "^1.1.1",
     "httpclient": "0.0.4",
     "lodash": "^3.10.1",
-    "request": "^2.65.0"
+    "observe-js": "^0.5.7",
+    "request": "^2.65.0",
+    "sockjs-client": "^1.0.3"
   }
 }

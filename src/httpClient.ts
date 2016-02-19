@@ -1,6 +1,5 @@
 'use strict';
 
-declare var require;
 const Client = require('axios');
 import {App} from './neutrino'
 

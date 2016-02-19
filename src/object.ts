@@ -1,10 +1,18 @@
-'use strict';
-
 import {App} from './neutrino'
 import * as diff from 'deep-diff'
+import * as observejs from 'observe-js'
+
+const EventEmitter: Emitter = require('eventemitter3');
+const ObjectObserver = observejs.ObjectObserver;
 
 export interface ObjectOptions {
     realtime: boolean;
+}
+
+export class ObjectEvents {
+    static propertyAdded: string = 'property-added';
+    static propertyChanged: string = 'property-changed';
+    static propertyRemoved: string = 'property-removed';
 }
 
 export class NeutrinoObject {
@@ -12,12 +20,39 @@ export class NeutrinoObject {
 
     _id: string;
 
-    constructor(app: App, id: string, dataType: string, opts: ObjectOptions) {
+    constructor(app: App, id: string, dataType: string, opts: ObjectOptions, observe: boolean = false) {
         this._id = id;
 
+        this._setProp('emitter', new EventEmitter());
+        this._setProp('observe', observe);
         this._setProp('app', app);
         this._setProp('dataType', dataType);
         this._setProp('opts', opts);
+
+        if (observe) {
+            this._initObserve();
+        }
+    }
+
+    private _initObserve() {
+        let observer = new ObjectObserver(this);
+        observer.open((added: any, removed: any, changed: any, getOld) => {
+            this._iterateChanges(ObjectEvents.propertyAdded, added, getOld);
+            this._iterateChanges(ObjectEvents.propertyRemoved, removed, getOld);
+            this._iterateChanges(ObjectEvents.propertyChanged, changed, getOld);
+        });
+    }
+
+    private _iterateChanges(event: string, obj: any, getOld) {
+        Object.keys(obj).forEach(prop => {
+            let evData = {
+                prop: prop,
+                value: obj[prop],
+                old: getOld(prop)
+            };
+
+            this.emit(event, evData);
+        });
     }
 
     private _protectStore() {
@@ -26,9 +61,21 @@ export class NeutrinoObject {
         }
     }
 
+    emit(ev: string, data: any) {
+        this._getEmitter().emit(ev, data);
+    }
+
+    on(ev: string, cb) {
+        this._getEmitter().on(ev, cb);
+    }
+
     _merge(obj: any): NeutrinoObject {
         diff.applyDiff(this, obj, null);
         return this;
+    }
+
+    _getEmitter(): Emitter {
+        return this._getProp<Emitter>('emitter');
     }
 
     _getApp(): App {
@@ -41,6 +88,10 @@ export class NeutrinoObject {
 
     _getOpts(): ObjectOptions {
         return this._getProp<ObjectOptions>('opts');
+    }
+
+    _getObserve(): boolean {
+        return this._getProp<boolean>('observe');
     }
 
     _getProp<T>(p: string): T {

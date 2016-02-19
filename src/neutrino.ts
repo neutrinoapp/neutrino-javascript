@@ -5,6 +5,7 @@ import {Data} from './data'
 
 interface AppOptions {
     host?: string
+    realtimeHost?: string
 }
 
 interface AppCache {
@@ -14,7 +15,10 @@ interface AppCache {
 export class App {
     host: string;
     appHost: string;
+    realtimeHost: string;
+    realtimeAppHost: string;
     token: string = '';
+    _uniqueId: string = (Date.now() + (Math.round(Math.random() * Date.now()))) + '';
     auth: Authentication;
 
     private _dataCache: AppCache = {};
@@ -26,6 +30,8 @@ export class App {
         opts = opts || {};
         this.host = opts.host || 'http://localhost:5000/v1/';
         this.appHost = this.host + 'app/' + this.appId + '/';
+        this.realtimeHost = opts.realtimeHost || 'ws://localhost:6000/data';
+        this.realtimeAppHost = this.realtimeHost + '?app=' + this.appId + '&id=' + this._uniqueId;
 
         this.auth = new Authentication(this);
     }

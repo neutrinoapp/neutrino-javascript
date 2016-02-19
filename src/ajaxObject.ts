@@ -8,7 +8,7 @@ import * as _ from 'lodash'
 export class AjaxObject extends NeutrinoObject {
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions) {
         super(app, id, dataType, opts);
-        let httpClient = new HttpClient(this._getApp());
+        let httpClient: HttpClient = new HttpClient(this._getApp());
 
         this._setProp('httpClient', httpClient);
     }

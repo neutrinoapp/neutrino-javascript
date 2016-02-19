@@ -2,6 +2,7 @@ import {HttpClient} from "./httpClient";
 import {App} from './neutrino'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {AjaxObject} from './ajaxObject'
+import {RealtimeObject} from "./realtimeObject";
 
 export class ObjectFactory {
     private _httpClient: HttpClient;
@@ -16,16 +17,16 @@ export class ObjectFactory {
         return new AjaxObject(this.app, id, dataType, opts).get();
     }
 
+    private _getRealtimeObject(id: string, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {
+        return new RealtimeObject(this.app, id, dataType, opts).get();
+    }
+
     get(id: string, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {
-        return new Promise<NeutrinoObject>((resolve, reject) => {
-            if (opts.realtime) {
+        if (opts.realtime) {
+            return this._getRealtimeObject(id, dataType, opts);
+        }
 
-            }
-
-            this._getAjaxObject(id, dataType, opts)
-                .then(resolve)
-                .catch(reject);
-        });
+        return this._getAjaxObject(id, dataType, opts)
     }
 
     create(param: any, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {
@@ -33,7 +34,7 @@ export class ObjectFactory {
             this._httpClient.create(dataType, param)
                 .then((id: string) => {
                     if (opts.realtime) {
-
+                        return resolve(new RealtimeObject(this.app, id, dataType, opts));
                     }
 
                     return resolve(new AjaxObject(this.app, id, dataType, opts));

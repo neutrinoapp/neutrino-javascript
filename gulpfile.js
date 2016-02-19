@@ -57,7 +57,7 @@ function build(done) {
         .on('missing-map', () => {
             console.log('Missing map!');
         })
-        .pipe(exorcist(path.join(__dirname, 'dist', 'neutrino.map'), null, path.join(__dirname, 'src')))
+        .pipe(exorcist(path.join(__dirname, 'dist', 'neutrino.js.map'), null, path.join(__dirname, 'src')))
         .pipe(source(main))
         .pipe(rename('./neutrino.js'))
         .pipe(gulp.dest('./dist'));
