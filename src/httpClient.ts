@@ -52,7 +52,7 @@ export class HttpClient {
         });
     }
 
-    _buildDataRequest(type: string, method: string, data: any, id: string): Promise<any> {
+    _buildDataRequest(type: string, method: string, data: any, id?: string): Promise<any> {
         var urls = ['data', type];
         if (id) {
             urls.push(id);
@@ -64,7 +64,7 @@ export class HttpClient {
             });
     }
 
-    get(type: string, id: string): Promise<any> {
+    get(type: string, id?: string): Promise<any> {
         return this._buildDataRequest(type, 'GET', null, id);
     }
 

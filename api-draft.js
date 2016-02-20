@@ -39,9 +39,7 @@ function doStuff() {
         .then(() => {
             return Promise.all([
                 cars.object(id).then(c => ajaxCar = c),
-                cars.object(id, {
-                    realtime: true
-                }).then(c => realtimeCar = c)
+                cars.object(id, {realtime: true}).then(c => realtimeCar = c)
             ]);
         })
         .then(() => {

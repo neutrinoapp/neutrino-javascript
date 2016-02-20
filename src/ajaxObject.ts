@@ -6,8 +6,8 @@ import {HttpClient} from './httpClient'
 import * as _ from 'lodash'
 
 export class AjaxObject extends NeutrinoObject {
-    constructor(app: App, id: string, dataType: string, opts: ObjectOptions) {
-        super(app, id, dataType, opts);
+    constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {
+        super(app, id, dataType, opts, false, initial);
         let httpClient: HttpClient = new HttpClient(this._getApp());
 
         this._setProp('httpClient', httpClient);

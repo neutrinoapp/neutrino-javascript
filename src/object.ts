@@ -1,6 +1,7 @@
 import {App} from './neutrino'
 import * as diff from 'deep-diff'
 import * as observejs from 'observe-js'
+import * as _ from 'lodash';
 
 const EventEmitter: Emitter = require('eventemitter3');
 const ObjectObserver = observejs.ObjectObserver;
@@ -15,12 +16,19 @@ export class ObjectEvents {
     static propertyRemoved: string = 'property-removed';
 }
 
+export interface EventData {
+    prop: string;
+    value: any;
+    old: any;
+    ev: string;
+}
+
 export class NeutrinoObject {
     static _propertyStore: WeakMap<NeutrinoObject, Map<string, any>> = new WeakMap();
 
     _id: string;
 
-    constructor(app: App, id: string, dataType: string, opts: ObjectOptions, observe: boolean = false) {
+    constructor(app: App, id: string, dataType: string, opts: ObjectOptions, observe: boolean, initial?: any) {
         this._id = id;
 
         this._setProp('emitter', new EventEmitter());
@@ -32,6 +40,16 @@ export class NeutrinoObject {
         if (observe) {
             this._initObserve();
         }
+
+        _.extend(this, initial);
+    }
+
+    _suspendUpdates() {
+        this._setProp('suspended', true);
+    }
+
+    _resumeUpdates() {
+        this._setProp('suspended', false);
     }
 
     private _initObserve() {
@@ -44,11 +62,16 @@ export class NeutrinoObject {
     }
 
     private _iterateChanges(event: string, obj: any, getOld) {
+        if (this._getProp<boolean>('suspended')) {
+            return;
+        }
+
         Object.keys(obj).forEach(prop => {
-            let evData = {
+            let evData: EventData = {
                 prop: prop,
                 value: obj[prop],
-                old: getOld(prop)
+                old: getOld(prop),
+                ev: event
             };
 
             this.emit(event, evData);
@@ -57,15 +80,15 @@ export class NeutrinoObject {
 
     private _protectStore() {
         if (!NeutrinoObject._propertyStore.has(this)) {
-            NeutrinoObject._propertyStore.set(this, new Map<string, any>());
+            NeutrinoObject._propertyStore.set(this, new Map());
         }
     }
 
-    emit(ev: string, data: any) {
+    emit(ev: string, data: EventData) {
         this._getEmitter().emit(ev, data);
     }
 
-    on(ev: string, cb) {
+    on(ev: string, cb: (ev: EventData) => void) {
         this._getEmitter().on(ev, cb);
     }
 
