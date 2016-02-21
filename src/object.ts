@@ -41,7 +41,9 @@ export class NeutrinoObject {
             this._initObserve();
         }
 
+        this._suspendUpdates();
         _.extend(this, initial);
+        setTimeout(() => this._resumeUpdates());
     }
 
     _suspendUpdates() {
@@ -62,10 +64,6 @@ export class NeutrinoObject {
     }
 
     private _iterateChanges(event: string, obj: any, getOld) {
-        if (this._getProp<boolean>('suspended')) {
-            return;
-        }
-
         Object.keys(obj).forEach(prop => {
             let evData: EventData = {
                 prop: prop,
@@ -84,12 +82,27 @@ export class NeutrinoObject {
         }
     }
 
-    emit(ev: string, data: EventData) {
-        this._getEmitter().emit(ev, data);
+    emit(ev: string, data: EventData): void {
+        this._getEmitter().emit(ev, data, this);
     }
 
-    on(ev: string, cb: (ev: EventData) => void) {
-        this._getEmitter().on(ev, cb);
+    on(ev: string, cb: (ev: EventData) => void): NeutrinoObject {
+        this._getEmitter().on(ev, () => {
+            //TODO: dirty hack
+            if (this._getProp<boolean>('suspended')) {
+                return;
+            }
+
+            cb.call(this, arguments);
+        });
+        return this;
+    }
+
+    onChanged(cb: (ev: EventData) => void): void {
+        this._getEmitter()
+            .on(ObjectEvents.propertyAdded, cb)
+            .on(ObjectEvents.propertyRemoved, cb)
+            .on(ObjectEvents.propertyChanged, cb);
     }
 
     _merge(obj: any): NeutrinoObject {

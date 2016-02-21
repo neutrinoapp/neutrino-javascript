@@ -2,6 +2,7 @@
 
 import {Authentication} from './auth'
 import {Data} from './data'
+import {ObjectEvents} from './object'
 
 interface AppOptions {
     host?: string
@@ -48,6 +49,8 @@ export class App {
         return new App(appId);
     }
 }
+
+App['ObjectEvents'] = ObjectEvents;
 
 if (typeof window !== 'undefined') {
     window['Neutrino'] = App;

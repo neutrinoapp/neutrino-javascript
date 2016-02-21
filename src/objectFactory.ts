@@ -22,12 +22,20 @@ export class ObjectFactory {
         return new RealtimeObject(this.app, id, dataType, opts).get();
     }
 
-    getMany(dataType: string): Promise<NeutrinoObject[]> {
+    getMany(dataType: string, opts: any): Promise<NeutrinoObject[]> {
         return new Promise<NeutrinoObject[]>((resolve, reject) => {
             this._httpClient.get(dataType)
                 .then((objects) => {
                     let neutrinoObjects = objects.map((o: any) => {
-                        return new AjaxObject(this.app, o._id, dataType, null, o);
+                        let ctor;
+
+                        if (opts.realtime) {
+                            ctor = RealtimeObject;
+                        } else {
+                            ctor = AjaxObject;
+                        }
+
+                        return new ctor(this.app, o._id, dataType, null, o);
                     });
 
                     return resolve(neutrinoObjects);

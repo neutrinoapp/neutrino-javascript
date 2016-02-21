@@ -28,8 +28,9 @@ export class Data {
 
     //TODO: add filters and such
     //TODO: add realtime option
-    objects(): Promise<NeutrinoObject[]> {
-        return this._factory.getMany(this.dataType);
+    objects(param?: any): Promise<NeutrinoObject[]> {
+        param = param || {};
+        return this._factory.getMany(this.dataType, param);
     }
 
     remove(id: string): Promise<any> {

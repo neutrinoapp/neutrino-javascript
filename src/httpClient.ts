@@ -5,6 +5,7 @@ import {App} from './neutrino'
 
 interface HttpHeaders {
     Authorization?: string;
+    NeutrinoOptions?: string;
 }
 
 interface RequestOptions {
@@ -28,6 +29,10 @@ export class HttpClient {
         if (this.app.token) {
             headers.Authorization = 'Bearer ' + this.app.token;
         }
+
+        // headers.NeutrinoOptions = JSON.stringify({
+        //     clientId: this.app._uniqueId
+        // });
 
         let requestOptions: RequestOptions = {
             method: method,

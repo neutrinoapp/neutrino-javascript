@@ -92,32 +92,35 @@ export class RealtimeObject extends NeutrinoObject {
     }
 
     private _sendUpdate(event) {
-        this._getQueue().add(new RealtimeOperation(
-            OperationType.UpdateRemote,
-            event
-        ));
+        // this._getQueue().add(new RealtimeOperation(
+        //     OperationType.UpdateRemote,
+        //     event
+        // ));
         //TODO: try to optimize this not to send updates to the server when the object was changed from a server message
-        // this._getWebSocketClient().sendUpdate(this);
+        this._getWebSocketClient().sendUpdate(this);
     }
 
     private _processMessage(m: Message) {
+        this._suspendUpdates();
         let objDiff = diff.diff(this, m.pld);
         if (!objDiff || (Array.isArray(objDiff) && !objDiff.length)) {
             return;
         }
 
         if (m.op === MessageOp.update) {
-            return this._update(m);
+            this._update(m);
         }
+
+        setTimeout(() => this._resumeUpdates());
     }
 
     private _update(m: Message) {
         //TODO: revise for other operations
-        this._getQueue().add(new RealtimeOperation(
-            OperationType.UpdateLocal,
-            m
-        ));
-        // this._merge(m.pld);
+        // this._getQueue().add(new RealtimeOperation(
+        //     OperationType.UpdateLocal,
+        //     m
+        // ));
+        this._merge(m.pld);
     }
 
     _getQueue(): AutoDrainQueue<RealtimeOperation> {
