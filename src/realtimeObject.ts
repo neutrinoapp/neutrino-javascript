@@ -7,13 +7,16 @@ export class RealtimeObject extends NeutrinoObject {
 
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {
         super(app, id, dataType, opts, true, initial);
-        let webSocketClient: WebSocketClient = new WebSocketClient(this._getApp(), this._getDataType());
+        let webSocketClient: WebSocketClient = new WebSocketClient(this._getApp());
 
         this._setProp('webSocketClient', webSocketClient);
 
         setTimeout(() => {
             //Delay to avoid any unwanted early events
-            webSocketClient.onMessage(this._processMessage.bind(this));
+            webSocketClient.on('message', this._processMessage.bind(this), (m: Message) => {
+                return m.pld._id === id && m.type === dataType;
+            });
+            //webSocketClient.onMessage(this._processMessage.bind(this), this._id);
 
             this.on(ObjectEvents.propertyAdded, this._sendUpdate.bind(this), false);
             this.on(ObjectEvents.propertyChanged, this._sendUpdate.bind(this), false);
@@ -22,14 +25,10 @@ export class RealtimeObject extends NeutrinoObject {
     }
 
     private _sendUpdate() {
-        this._getWebSocketClient().sendUpdate(this);
+        this._getWebSocketClient().sendUpdate(this, this._getDataType());
     }
 
     private _processMessage(m: Message) {
-        if (m.pld._id !== this._id) {
-            return;
-        }
-
         let objDiff = diff.diff(this, m.pld);
         if (!objDiff || (Array.isArray(objDiff) && !objDiff.length)) {
             return;
@@ -58,16 +57,20 @@ export class RealtimeObject extends NeutrinoObject {
     }
 
     update(): Promise<NeutrinoObject> {
-        return new Promise<NeutrinoObject>((resolve, reject) => {
+        return new Promise<NeutrinoObject>((resolve) => {
+            this._getWebSocketClient().sendUpdate(this, this._getDataType());
             return resolve(this);
         });
     }
 
-    remove(): Promise<any> {
-        return new Promise<NeutrinoObject>((resolve, reject) => {
-            return resolve(this);
+    remove(): Promise<string> {
+        return new Promise<string>((resolve) => {
+            this._getWebSocketClient().sendRemove({
+                _id: this._id
+            }, this._getDataType());
+
+            return resolve(this._id);
         });
-        //return this._getHttpClient().delete(this._getDataType(), this._id);
     }
 
     reset(): Promise<NeutrinoObject> {

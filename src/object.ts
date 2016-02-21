@@ -3,7 +3,7 @@ import * as diff from 'deep-diff'
 import * as observejs from 'observe-js'
 import * as _ from 'lodash';
 
-const EventEmitter: Emitter = require('eventemitter3');
+import {EventEmitter2} from 'eventemitter2'
 const ObjectObserver = observejs.ObjectObserver;
 
 export interface ObjectOptions {
@@ -31,7 +31,10 @@ export class NeutrinoObject {
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, observe: boolean, initial?: any) {
         this._id = id;
 
-        this._setProp('emitter', new EventEmitter());
+        let emitter = new EventEmitter2();
+        emitter.setMaxListeners(0);
+
+        this._setProp('emitter', emitter);
         this._setProp('observe', observe);
         this._setProp('app', app);
         this._setProp('dataType', dataType);
@@ -87,14 +90,16 @@ export class NeutrinoObject {
     }
 
     on(ev: string, cb: (ev: EventData) => void, ignoreSuspendFlags?: boolean): NeutrinoObject {
-        this._getEmitter().on(ev, () => {
-            //TODO: dirty hack
-            if (!ignoreSuspendFlags && this._getProp<boolean>('suspended')) {
+        let self = this;
+
+        this._getEmitter().on(ev, function () {
+            if (!ignoreSuspendFlags && self._getProp('suspended')) {
                 return;
             }
 
-            cb.call(this, arguments);
+            cb.apply(self, arguments);
         });
+
         return this;
     }
 
@@ -110,8 +115,8 @@ export class NeutrinoObject {
         return this;
     }
 
-    _getEmitter(): Emitter {
-        return this._getProp<Emitter>('emitter');
+    _getEmitter(): EventEmitter2 {
+        return this._getProp<EventEmitter2>('emitter');
     }
 
     _getApp(): App {

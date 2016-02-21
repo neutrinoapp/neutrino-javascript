@@ -1,22 +1,10 @@
 import {App} from './neutrino'
-const EventEmitter: Emitter = require('eventemitter3');
-
-let connectionsMap: Map<string, WebSocket> = new Map();
-
-//{
-// "app":"8139ed1ec39a467b96b0250dcf520749",
-// "op":"update",
-// "options":null,
-// "origin":"api",
-// "pld":{"_id":"c27dd1a285304bce8e2cb94212f2a0f0","model":"Mitsubishi"},
-// "token":"token",
-// "type":"car"
-//}
+import {EventEmitter2} from 'eventemitter2';
 
 export class MessageOp {
     static update = 'update';
     static create = 'create';
-    static remove = 'remove';
+    static remove = 'delete';
 }
 
 export class MessageOrigin {
@@ -35,20 +23,36 @@ export interface Message {
     raw: any;
 }
 
-export class WebSocketClient extends EventEmitter {
+const webSocketEmitter = new EventEmitter2();
+webSocketEmitter.setMaxListeners(0);
+
+const connectionsMap: Map<string, WebSocket> = new Map();
+
+export class WebSocketClient {
     private _connection: WebSocket;
 
     constructor(
-        public app: App,
-        public dataType: string
+        public app: App
     ) {
-        super();
         this._connection = this._handleConnection();
+    }
+
+    private _retryConnection() {
+        setTimeout(() => {
+            console.log('Retrying websocket connection');
+            this._connection = this._handleConnection();
+        }, 2000);
     }
 
     private _handleConnection(): WebSocket {
         if (!connectionsMap.has(this.app.appId)) {
-            let conn = new WebSocket(this.app.realtimeAppHost);
+            let conn: WebSocket;
+            try {
+                conn = new WebSocket(this.app.realtimeAppHost);
+            } catch (e) {
+                return null;
+            }
+
             connectionsMap.set(this.app.appId, conn);
 
             conn.onerror = (e) => {
@@ -68,30 +72,72 @@ export class WebSocketClient extends EventEmitter {
             conn.onclose = () => {
                 console.log('Connection for ' + this.app.appId + ' closed');
                 connectionsMap.delete(this.app.appId);
+                this._retryConnection();
             }
         }
 
         return connectionsMap.get(this.app.appId);
     }
 
-    onMessage(cb: (m: Message) => void) {
-        this.on('message', cb);
-    }
-
-    sendUpdate(obj: any): void {
+    private _buildMessage(op: string, pld: any, dataType: string): Message {
         let m: Message = <Message>{};
         m.app = this.app.appId;
-        m.op = MessageOp.update;
+        m.op = op;
         m.options = {
             clientId: this.app._uniqueId
         };
         m.origin = MessageOrigin.client;
-        m.pld = obj;
-        delete m.raw;
+        m.pld = pld || {};
         m.token = this.app.token;
-        m.type = this.dataType;
+        m.type = dataType;
 
-        //TODO: handle different than open state
+        return m;
+    }
+
+    private _deferSendMessage(m: Message): void {
+        setTimeout(() => {
+            this._sendMessage(m);
+        }, 500);
+    }
+
+    private _sendMessage(m: Message): void {
+        if (!this._connection || this._connection.readyState !== WebSocket.OPEN) {
+            return this._deferSendMessage(m);
+        }
+
         this._connection.send(JSON.stringify(m));
+    }
+
+    on(ev: string, cb, filter?): WebSocketClient {
+        webSocketEmitter.on(ev, function (msg) {
+            if (!filter) {
+                return cb(msg);
+            }
+
+            if (filter(msg)) {
+                return cb(msg);
+            }
+        });
+        return this;
+    }
+
+    emit(ev, data): WebSocketClient {
+        webSocketEmitter.emit(ev, data);
+        return this
+    }
+
+    sendCreate(obj: any, dataType: string): void {
+        let m = this._buildMessage(MessageOp.create, obj, dataType);
+        this._sendMessage(m);
+    }
+
+    sendRemove(obj: any, dataType: string): void {
+        let m = this._buildMessage(MessageOp.remove, obj, dataType);
+        this._sendMessage(m);
+    }
+
+    sendUpdate(obj: any, dataType: string): void {
+        let m = this._buildMessage(MessageOp.update, obj, dataType);
+        this._sendMessage(m);
     }
 }

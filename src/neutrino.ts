@@ -3,6 +3,7 @@
 import {Authentication} from './auth'
 import {Data} from './data'
 import {ObjectEvents} from './object'
+import {ArrayEvents} from './realtimeArray'
 
 interface AppOptions {
     host?: string
@@ -51,6 +52,7 @@ export class App {
 }
 
 App['ObjectEvents'] = ObjectEvents;
+App['ArrayEvents'] = ArrayEvents;
 
 if (typeof window !== 'undefined') {
     window['Neutrino'] = App;
