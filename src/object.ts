@@ -86,10 +86,10 @@ export class NeutrinoObject {
         this._getEmitter().emit(ev, data, this);
     }
 
-    on(ev: string, cb: (ev: EventData) => void): NeutrinoObject {
+    on(ev: string, cb: (ev: EventData) => void, ignoreSuspendFlags?: boolean): NeutrinoObject {
         this._getEmitter().on(ev, () => {
             //TODO: dirty hack
-            if (this._getProp<boolean>('suspended')) {
+            if (!ignoreSuspendFlags && this._getProp<boolean>('suspended')) {
                 return;
             }
 
@@ -99,10 +99,10 @@ export class NeutrinoObject {
     }
 
     onChanged(cb: (ev: EventData) => void): void {
-        this._getEmitter()
-            .on(ObjectEvents.propertyAdded, cb)
-            .on(ObjectEvents.propertyRemoved, cb)
-            .on(ObjectEvents.propertyChanged, cb);
+        this
+            .on(ObjectEvents.propertyAdded, cb, true)
+            .on(ObjectEvents.propertyRemoved, cb, true)
+            .on(ObjectEvents.propertyChanged, cb, true);
     }
 
     _merge(obj: any): NeutrinoObject {

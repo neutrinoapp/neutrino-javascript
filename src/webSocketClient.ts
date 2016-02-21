@@ -91,6 +91,7 @@ export class WebSocketClient extends EventEmitter {
         m.token = this.app.token;
         m.type = this.dataType;
 
+        //TODO: handle different than open state
         this._connection.send(JSON.stringify(m));
     }
 }
