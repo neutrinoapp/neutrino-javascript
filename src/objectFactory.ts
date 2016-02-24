@@ -9,13 +9,13 @@ import {RealtimeArray} from './realtimeArray'
 
 export class ObjectFactory {
     private _httpClient: HttpClient;
-    private _webSocketClient: WebSocketClient;
+    //private _webSocketClient: WebSocketClient;
 
     constructor(
         private app: App
     ) {
         this._httpClient = new HttpClient(this.app);
-        this._webSocketClient = new WebSocketClient(this.app);
+        //this._webSocketClient = new WebSocketClient(this.app);
     }
 
     private _getAjaxObject(id: string, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {

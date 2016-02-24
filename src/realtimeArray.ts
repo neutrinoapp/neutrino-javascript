@@ -16,43 +16,50 @@ export class RealtimeArray {
             return new RealtimeObject(app, o._id, dataType, null, o);
         });
 
-        let ws = objects._ws = new WebSocketClient(app);
+        let ws = objects._ws = new WebSocketClient(app, dataType);
         objects._emitter = new EventEmitter2();
 
-        ws.on('message', (m: Message) => {
+        var findObjectIndex = (m: Message) => {
             let matchPredicate = {_id: m.pld._id};
             let objectIndex = _.findLastIndex(objects, matchPredicate);
+            return objectIndex;
+        };
 
-            if (m.op === MessageOp.create) {
-                if (objectIndex !== -1) {
-                    return;
-                }
+        ws.onCreateMessage((m: Message) => {
+            let objectIndex = findObjectIndex(m);
 
-                let item = new RealtimeObject(app, m.pld._id, dataType, null, m.pld);
-                Array.prototype.push.call(objects, item);
-                let evData = {
-                    prop: objects.length[0],
-                    value: item,
-                    ev: ArrayEvents.add
-                };
-
-                objects._emitter.emit('change', evData);
-            } else if (m.op === MessageOp.remove) {
-                if (objectIndex === -1) {
-                    return;
-                }
-
-                let deletedItem = objects[objectIndex];
-                _.remove(objects, matchPredicate);
-                let evData = {
-                    prop: objectIndex,
-                    value: deletedItem,
-                    ev: ArrayEvents.remove
-                };
-
-                objects._emitter.emit('change', evData)
+            if (objectIndex !== -1) {
+                return;
             }
-        }, (m: Message) => m.type === dataType);
+
+            let item = new RealtimeObject(app, m.pld._id, dataType, null, m.pld);
+            Array.prototype.push.call(objects, item);
+            let evData = {
+                prop: objects.length[0],
+                value: item,
+                ev: ArrayEvents.add
+            };
+
+            objects._emitter.emit('change', evData);
+        });
+
+        ws.onDeleteMessage((m: Message) => {
+            let objectIndex = findObjectIndex(m);
+
+            if (objectIndex === -1) {
+                return;
+            }
+
+            let deletedItem = objects[objectIndex];
+            _.remove(objects, {_id: m.pld._id});
+            let evData = {
+                prop: objectIndex,
+                value: deletedItem,
+                ev: ArrayEvents.remove
+            };
+
+            objects._emitter.emit('change', evData)
+        });
 
         objects.push = function () {
             let elements = Array.from(arguments);
@@ -66,8 +73,10 @@ export class RealtimeArray {
             app.use(dataType).remove(id);
         };
 
-        objects.onChanged = function (cb) {
-            objects._emitter.on('change', cb);
+        //TODO: override other array methods
+
+        objects.on = function (ev, cb) {
+            objects._emitter.on(ev, cb);
         };
 
         return <NeutrinoObject[]>objects;

@@ -7,15 +7,13 @@ export class RealtimeObject extends NeutrinoObject {
 
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {
         super(app, id, dataType, opts, true, initial);
-        let webSocketClient: WebSocketClient = new WebSocketClient(this._getApp());
+        let webSocketClient: WebSocketClient = new WebSocketClient(this._getApp(), this._getDataType());
 
         this._setProp('webSocketClient', webSocketClient);
 
         setTimeout(() => {
             //Delay to avoid any unwanted early events
-            webSocketClient.on('message', this._processMessage.bind(this), (m: Message) => {
-                return m.pld._id === id && m.type === dataType;
-            });
+            webSocketClient.onUpdateMessage(this._processMessage.bind(this));
             //webSocketClient.onMessage(this._processMessage.bind(this), this._id);
 
             this.on(ObjectEvents.propertyAdded, this._sendUpdate.bind(this), false);
@@ -35,9 +33,7 @@ export class RealtimeObject extends NeutrinoObject {
         }
 
         this._suspendUpdates();
-        if (m.op === MessageOp.update) {
-            this._update(m);
-        }
+        this._update(m);
 
         setTimeout(() => this._resumeUpdates());
     }

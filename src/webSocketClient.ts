@@ -13,6 +13,10 @@ export class MessageOrigin {
     static client = 'client';
 }
 
+export class Realms {
+    static defaultRealm = 'default';
+}
+
 export interface Message {
     app: string;
     op: string;
@@ -24,78 +28,89 @@ export interface Message {
     raw: any;
 }
 
-const webSocketEmitter = new EventEmitter2();
-webSocketEmitter.setMaxListeners(0);
-
-const connectionsMap: Map<string, WebSocket> = new Map();
-
-export class WebSocketClient {
-    private _connection: WebSocket;
+class RealTimeConnection {
+    private _callbacks = [];
 
     constructor(
-        public app: App
-    ) {
-        //this._connection = this._handleConnection();
-        var conn = new autobahn.Connection({
-            url: 'ws://localhost:6000',
-            realm: 'default'
+        public connection?: autobahn.Connection,
+        public session?: autobahn.Session
+    ) {}
+
+    setSession(s: autobahn.Session) {
+        this.session = s;
+        this._callbacks.forEach(cb => s.subscribe(cb.topic, cb.callback));
+    }
+
+    subscribeToSession(topic: string, cb) {
+        let callbackWrapper = (e) => {
+            if (e.length) {
+                let msg: Message = JSON.parse(e[0]);
+                return cb(msg);
+            }
+
+            return cb(e);
+        };
+
+        this._callbacks.push({
+            topic: topic,
+            callback: callbackWrapper
         });
 
-        conn.onopen = function (session) {
-            debugger;
-
-            session.subscribe('test', function (e) {
-                debugger;
-            });
-        };
-
-        conn.onclose = function () {
-            debugger;
-        };
-
-        conn.open();
+        if (this.session) {
+            this.session.subscribe(topic, callbackWrapper);
+        }
     }
+}
 
-    private _retryConnection() {
-        setTimeout(() => {
-            console.log('Retrying websocket connection');
-            this._connection = this._handleConnection();
-        }, 2000);
-    }
+const connectionsMap: Map<string, RealTimeConnection> = new Map();
 
-    private _handleConnection(): WebSocket {
-        if (!connectionsMap.has(this.app.appId)) {
-            let conn: WebSocket;
-            try {
-                conn = new WebSocket(this.app.realtimeAppHost);
-            } catch (e) {
-                return null;
-            }
+export class WebSocketClient {
+    private _emitter: EventEmitter2;
 
-            connectionsMap.set(this.app.appId, conn);
+    defaultTopic: string;
 
-            conn.onerror = (e) => {
-                console.log(e);
-            };
+    constructor(
+        public app: App,
+        public dataType?: string
+    ) {
+        this._emitter = new EventEmitter2();
+        this._emitter.setMaxListeners(0);
 
-            conn.onopen = () => {
-                console.log('Connection for ' + this.app.appId + ' opened');
-            };
-
-            conn.onmessage = (e) => {
-                let msg: Message = <Message>JSON.parse(e.data);
-                msg.raw = e;
-                this.emit('message', msg);
-            };
-
-            conn.onclose = () => {
-                console.log('Connection for ' + this.app.appId + ' closed');
-                connectionsMap.delete(this.app.appId);
-                this._retryConnection();
-            }
+        if (this.dataType) {
+            this.defaultTopic = [this.app.appId, this.dataType].join('.');
+        } else {
+            //TODO:
         }
 
+        this._handleConnection();
+    }
+
+    private _getConnection(): RealTimeConnection {
         return connectionsMap.get(this.app.appId);
+    }
+
+    private _handleConnection() {
+        if (!connectionsMap.has(this.app.appId)) {
+            var conn = new autobahn.Connection({
+                url: this.app.realtimeHost,
+                realm: Realms.defaultRealm
+            });
+
+            var realTimeConn = new RealTimeConnection(conn);
+            connectionsMap.set(this.app.appId, realTimeConn);
+
+            conn.onopen = (session: autobahn.Session) => {
+                console.log('Connection for ' + this.app.appId + ' opened');
+                this._getConnection().setSession(session);
+            };
+
+            conn.onclose = (): boolean => {
+                console.log('Connection for ' + this.app.appId + ' closed');
+                return true;
+            };
+
+            conn.open();
+        }
     }
 
     private _buildMessage(op: string, pld: any, dataType: string): Message {
@@ -113,36 +128,33 @@ export class WebSocketClient {
         return m;
     }
 
-    private _deferSendMessage(m: Message): void {
-        setTimeout(() => {
-            this._sendMessage(m);
-        }, 500);
-    }
-
     private _sendMessage(m: Message): void {
-        if (!this._connection || this._connection.readyState !== WebSocket.OPEN) {
-            return this._deferSendMessage(m);
-        }
-
-        this._connection.send(JSON.stringify(m));
+        let connection = this._getConnection();
+        connection.session.publish(this.defaultTopic, [JSON.stringify(m)]);
     }
 
-    on(ev: string, cb, filter?): WebSocketClient {
-        webSocketEmitter.on(ev, function (msg) {
-            if (!filter) {
-                return cb(msg);
-            }
+    private _buildTopic(op: string): string {
+        return this.defaultTopic + '.' + op.toLowerCase();
+    }
 
-            if (filter(msg)) {
-                return cb(msg);
-            }
-        });
+    onDeleteMessage(cb): WebSocketClient {
+        let topic = this._buildTopic(MessageOp.remove);
+        return this.onMessage(topic, cb);
+    }
+
+    onCreateMessage(cb): WebSocketClient {
+        let topic = this._buildTopic(MessageOp.create);
+        return this.onMessage(topic, cb);
+    }
+
+    onUpdateMessage(cb): WebSocketClient {
+        let topic = this._buildTopic(MessageOp.update);
+        return this.onMessage(topic, cb);
+    }
+
+    onMessage(topic: string, cb): WebSocketClient {
+        this._getConnection().subscribeToSession(topic, cb);
         return this;
-    }
-
-    emit(ev, data): WebSocketClient {
-        webSocketEmitter.emit(ev, data);
-        return this
     }
 
     sendCreate(obj: any, dataType: string): void {

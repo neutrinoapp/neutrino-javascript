@@ -30,8 +30,6 @@
     "gulp-babel": "^6.0.0",
     "gulp-ignore": "^2.0.1",
     "gulp-rename": "^1.2.2",
-    "gulp-rollup": "^1.0.1",
-    "gulp-rollup-babel": "^1.0.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-streamify": "^1.0.2",
     "gulp-typescript": "^2.11.0",
