@@ -1,5 +1,6 @@
 import {App} from './neutrino'
 import {EventEmitter2} from 'eventemitter2';
+import * as autobahn from 'autobahn'
 
 export class MessageOp {
     static update = 'update';
@@ -34,7 +35,25 @@ export class WebSocketClient {
     constructor(
         public app: App
     ) {
-        this._connection = this._handleConnection();
+        //this._connection = this._handleConnection();
+        var conn = new autobahn.Connection({
+            url: 'ws://localhost:6000',
+            realm: 'default'
+        });
+
+        conn.onopen = function (session) {
+            debugger;
+
+            session.subscribe('test', function (e) {
+                debugger;
+            });
+        };
+
+        conn.onclose = function () {
+            debugger;
+        };
+
+        conn.open();
     }
 
     private _retryConnection() {

@@ -49,13 +49,16 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "autobahn": "^0.9.9",
     "axios": "^0.7.0",
+    "bufferutil": "^1.2.1",
     "deep-diff": "^0.3.3",
     "eventemitter2": "^0.4.14",
     "httpclient": "0.0.4",
     "lodash": "^3.10.1",
     "observe-js": "^0.5.7",
     "request": "^2.65.0",
-    "sockjs-client": "^1.0.3"
+    "sockjs-client": "^1.0.3",
+    "utf-8-validate": "^1.2.1"
   }
 }
