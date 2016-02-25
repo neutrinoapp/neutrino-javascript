@@ -39,7 +39,12 @@ class RealTimeConnection {
 
     setSession(s: autobahn.Session) {
         this.session = s;
-        this._callbacks.forEach(cb => s.subscribe(cb.topic, cb.callback));
+        setTimeout(() => {
+            this._callbacks.forEach(cb => {
+                s.subscribe(cb.topic, cb.callback)
+                    .then(() => console.log('Subscribed to: ' + cb.topic), console.error.bind(console));
+            });
+        });
     }
 
     subscribeToSession(topic: string, cb) {
@@ -94,7 +99,8 @@ export class WebSocketClient {
         if (!connectionsMap.has(this.app.appId)) {
             var conn = new autobahn.Connection({
                 url: this.app.realtimeHost,
-                realm: Realms.defaultRealm
+                realm: Realms.defaultRealm,
+                max_retries: -1,
             });
 
             var realTimeConn = new RealTimeConnection(conn);
@@ -137,7 +143,12 @@ export class WebSocketClient {
 
     private _sendMessage(m: Message): void {
         let connection = this._getConnection();
-        connection.session.publish(m.topic, [JSON.stringify(m)]);
+        let publishOpts: any = {};
+        if (m.op === MessageOp.remove || m.op === MessageOp.create) {
+            publishOpts.exclude_me = false;
+        }
+
+        connection.session.publish(m.topic, [JSON.stringify(m)], publishOpts);
     }
 
     private _buildTopic(...args: string[]): string {
