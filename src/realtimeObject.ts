@@ -13,7 +13,7 @@ export class RealtimeObject extends NeutrinoObject {
 
         setTimeout(() => {
             //Delay to avoid any unwanted early events
-            webSocketClient.onUpdateMessage(this._processMessage.bind(this));
+            webSocketClient.onUpdateMessage(this._processMessage.bind(this), this._id);
             //webSocketClient.onMessage(this._processMessage.bind(this), this._id);
 
             this.on(ObjectEvents.propertyAdded, this._sendUpdate.bind(this), false);

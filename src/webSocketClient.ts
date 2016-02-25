@@ -26,6 +26,7 @@ export interface Message {
     token: string;
     type: string;
     raw: any;
+    topic: string;
 }
 
 class RealTimeConnection {
@@ -125,16 +126,22 @@ export class WebSocketClient {
         m.token = this.app.token;
         m.type = dataType;
 
+        let topicArgs: string[] = [m.op];
+        if (m.op === MessageOp.update) {
+            topicArgs.push(m.pld._id);
+        }
+
+        m.topic = this._buildTopic(...topicArgs);
         return m;
     }
 
     private _sendMessage(m: Message): void {
         let connection = this._getConnection();
-        connection.session.publish(this.defaultTopic, [JSON.stringify(m)]);
+        connection.session.publish(m.topic, [JSON.stringify(m)]);
     }
 
-    private _buildTopic(op: string): string {
-        return this.defaultTopic + '.' + op.toLowerCase();
+    private _buildTopic(...args: string[]): string {
+        return [this.defaultTopic].concat(args).join('.');
     }
 
     onDeleteMessage(cb): WebSocketClient {
@@ -147,8 +154,8 @@ export class WebSocketClient {
         return this.onMessage(topic, cb);
     }
 
-    onUpdateMessage(cb): WebSocketClient {
-        let topic = this._buildTopic(MessageOp.update);
+    onUpdateMessage(cb, id: string): WebSocketClient {
+        let topic = this._buildTopic(MessageOp.update, id);
         return this.onMessage(topic, cb);
     }
 
