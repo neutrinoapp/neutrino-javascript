@@ -121,6 +121,8 @@ export class WebSocketClient {
     }
 
     private _buildMessage(op: string, pld: any, dataType: string): Message {
+        dataType = dataType || this.dataType;
+
         let m: Message = <Message>{};
         m.app = this.app.appId;
         m.op = op;
@@ -148,7 +150,7 @@ export class WebSocketClient {
             publishOpts.exclude_me = false;
         }
 
-        connection.session.publish(m.topic, [JSON.stringify(m)], publishOpts);
+        connection.session.publish(m.topic, [JSON.stringify(m)], {}, publishOpts);
     }
 
     private _buildTopic(...args: string[]): string {
@@ -175,17 +177,17 @@ export class WebSocketClient {
         return this;
     }
 
-    sendCreate(obj: any, dataType: string): void {
+    sendCreate(obj: any, dataType?: string): void {
         let m = this._buildMessage(MessageOp.create, obj, dataType);
         this._sendMessage(m);
     }
 
-    sendRemove(obj: any, dataType: string): void {
+    sendRemove(obj: any, dataType?: string): void {
         let m = this._buildMessage(MessageOp.remove, obj, dataType);
         this._sendMessage(m);
     }
 
-    sendUpdate(obj: any, dataType: string): void {
+    sendUpdate(obj: any, dataType?: string): void {
         let m = this._buildMessage(MessageOp.update, obj, dataType);
         this._sendMessage(m);
     }

@@ -12,10 +12,11 @@ export class ArrayEvents {
 
 export class RealtimeArray {
     static make(app: App, dataType: string, arr: any): NeutrinoObject[] {
-        let objects = arr.map((o) => {
+        let objects = arr.map((o: any) => {
             return new RealtimeObject(app, o._id, dataType, null, o);
         });
 
+        let data = app.use(dataType);
         let ws = objects._ws = new WebSocketClient(app, dataType);
         objects._emitter = new EventEmitter2();
 
@@ -61,19 +62,52 @@ export class RealtimeArray {
             objects._emitter.emit('change', evData)
         });
 
+        var createMany = (elements): Promise<any> => {
+            let promises = elements.map(e => {
+                return data.object(e, {realtime: true});
+            });
+
+            return Promise.all(promises);
+        };
+
         objects.push = function () {
             let elements = Array.from(arguments);
-            let data = app.use(dataType);
-            elements.forEach(e => {
-                data.object(e, {realtime: true});
+            createMany(elements).then(realtimeItems => {
+                Array.prototype.push.call(objects, realtimeItems);
             });
         };
 
-        objects.remove = function (id: string) {
-            app.use(dataType).remove(id);
+        objects.pop = function () {
+            let popped = Array.prototype.pop.call(objects);
+            ws.sendRemove({_id: popped._id});
         };
 
-        //TODO: override other array methods
+        objects.splice = function () {
+            let spliced = Array.prototype.splice.call(this, arguments);
+            spliced.forEach((o: any) => {
+                ws.sendRemove({_id: o._id});
+            });
+        };
+
+        objects.unshift = function () {
+            let elements = Array.from(arguments);
+            createMany(elements).then(realtimeItems => {
+                Array.prototype.unshift.call(this, realtimeItems);
+            });
+
+            return this.length - elements.length;
+        };
+
+        objects.shift = function () {
+            let shifted = Array.prototype.shift.call(this, arguments);
+            ws.sendRemove({_id: shifted._id});
+        };
+
+        objects.remove = function (id: string) {
+            let model = {_id: id};
+            _.remove(this, model);
+            ws.sendRemove(model);
+        };
 
         objects.on = function (ev, cb) {
             objects._emitter.on(ev, cb);
