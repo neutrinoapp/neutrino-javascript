@@ -48,11 +48,7 @@ export class AjaxObject extends NeutrinoObject {
         return new Promise<NeutrinoObject>((resolve, reject) => {
             this._getData()
                 .then((obj) => {
-                    _.each(this, (val: any, key: string) => {
-                        delete this[key];
-                    });
-
-                    this._merge(obj);
+                    this._reset(obj);
                     return resolve(this);
                 })
                 .catch(reject);

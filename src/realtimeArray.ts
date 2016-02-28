@@ -104,7 +104,7 @@ export class RealtimeArray {
             });
 
             Promise.all(removePromises)
-                .then(removed => {
+                .then((removed: any[]) => {
                     removed.forEach((id: string, index: number) => {
                         emitDelete(spliced[index]);
                     })
@@ -134,8 +134,10 @@ export class RealtimeArray {
         objects.remove = function (id: string) {
             let model = {_id: id};
             let removed = _.remove(this, model);
-            ws.callRemove(model).then(() => {
-                return _.first(removed);
+            return ws.callRemove(model).then(() => {
+                let removedObject = _.first(removed);
+                emitDelete(removedObject);
+                return removedObject;
             });
         };
 

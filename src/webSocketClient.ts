@@ -114,6 +114,8 @@ export class WebSocketClient {
                 url: this.app.realtimeHost,
                 realm: Realms.defaultRealm,
                 max_retries: -1,
+                initial_retry_delay: 1,
+                max_retry_delay: 1
             });
 
             var realTimeConn = new RealTimeConnection(conn);
@@ -133,15 +135,15 @@ export class WebSocketClient {
         }
     }
 
-    private _buildMessage(op: string, pld: any, dataType: string): Message {
+    private _buildMessage(op: string, pld: any, dataType: string, opts?: any): Message {
         dataType = dataType || this.dataType;
 
         let m: Message = <Message>{};
         m.app = this.app.appId;
         m.op = op;
-        m.options = {
+        m.options = _.extend({
             clientId: this.app._uniqueId
-        };
+        }, opts);
         m.origin = MessageOrigin.client;
         m.pld = pld || {};
         m.token = this.app.token;
@@ -169,9 +171,10 @@ export class WebSocketClient {
         });
     }
 
-    private _call(op: string, obj: any, dataType?: string): Promise<any> {
+    private _call(op: string, obj: any, dataType?: string, opts?: any): Promise<any> {
         dataType = dataType || this.dataType;
-        let msg: Message = this._buildMessage(op, obj, dataType);
+
+        let msg: Message = this._buildMessage(op, obj, dataType, opts);
         let method;
         if (msg.op === MessageOp.read) {
             method = 'data.read';
@@ -179,6 +182,8 @@ export class WebSocketClient {
             method = 'data.create';
         } else if (msg.op === MessageOp.remove) {
             method = 'data.remove';
+        } else if (msg.op === MessageOp.update) {
+            method = 'data.update';
         }
 
         let connection = this._getConnection();
@@ -228,15 +233,19 @@ export class WebSocketClient {
         this._sendMessage(m);
     }
 
-    callRead(obj: any, dataType?: string): Promise<any> {
-        return this._call(MessageOp.read, obj, dataType);
+    callRead(obj: any, dataType?: string, opts?: any): Promise<any> {
+        return this._call(MessageOp.read, obj, dataType, opts);
     }
 
-    callCreate(obj: any, dataType?: string): Promise<any> {
-        return this._call(MessageOp.create, obj, dataType);
+    callCreate(obj: any, dataType?: string, opts?: any): Promise<any> {
+        return this._call(MessageOp.create, obj, dataType, opts);
     }
 
-    callRemove(obj: any, dataType?: string): Promise<any> {
-        return this._call(MessageOp.remove, obj, dataType);
+    callRemove(obj: any, dataType?: string, opts?: any): Promise<any> {
+        return this._call(MessageOp.remove, obj, dataType, opts);
+    }
+
+    callUpdate(obj: any, dataType?: string, opts?: any): Promise<any> {
+        return this._call(MessageOp.update, obj, dataType, opts);
     }
 }

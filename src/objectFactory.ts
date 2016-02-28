@@ -36,7 +36,7 @@ export class ObjectFactory {
             }
 
             promise
-                .then(objects => {
+                .then((objects: any[]) => {
                     if (opts.realtime) {
                         let realtimeArray = RealtimeArray.make(this.app, dataType, objects);
                         return resolve(realtimeArray)
@@ -72,11 +72,17 @@ export class ObjectFactory {
 
             promise
                 .then((id: string) => {
+                    let object;
+
                     if (opts.realtime) {
-                        return resolve(new RealtimeObject(this.app, id, dataType, opts));
+                        object = new RealtimeObject(this.app, id, dataType, opts);
+
+                    } else {
+                        object = new AjaxObject(this.app, id, dataType, opts)
                     }
 
-                    return resolve(new AjaxObject(this.app, id, dataType, opts));
+                    //TODO: can we get rid of this request as it seems a little redundant?
+                    return object.get().then(resolve, reject);
                 })
                 .catch(reject);
         });

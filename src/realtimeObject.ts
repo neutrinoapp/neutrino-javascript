@@ -32,17 +32,13 @@ export class RealtimeObject extends NeutrinoObject {
             return;
         }
 
-        this._updateSuspended(m);
+        this._updateSuspended(m.pld);
     }
 
-    private _updateSuspended(m: Message) {
+    private _updateSuspended(data: any) {
         this._suspendUpdates();
-        this._update(m);
+        this._merge(data);
         setTimeout(() => this._resumeUpdates());
-    }
-
-    private _update(m: Message) {
-        this._merge(m.pld);
     }
 
     _getWebSocketClient(): WebSocketClient {
@@ -52,26 +48,25 @@ export class RealtimeObject extends NeutrinoObject {
     get(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
             return this._getWebSocketClient().callRead({_id: this._id})
-                .then((m: Message) => {
-                    this._updateSuspended(m);
+                .then((data: any) => {
+                    this._updateSuspended(data);
                     resolve(this);
                 }, reject);
         });
     }
 
     update(): Promise<NeutrinoObject> {
-        return new Promise<NeutrinoObject>((resolve) => {
-            this._getWebSocketClient().sendUpdate(this, this._getDataType());
-            return resolve(this);
+        return new Promise<NeutrinoObject>((resolve, reject) => {
+            this._getWebSocketClient().callUpdate(this, null, {notify: true}).then(() => {
+                return resolve(this);
+            }, reject);
         });
     }
 
     remove(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this._getWebSocketClient().callRemove({
-                _id: this._id
-            }).then(() => {
-                resolve(this._id)
+            this._getWebSocketClient().callRemove({_id: this._id}, null, {notify: true}).then(() => {
+                return resolve(this._id)
             }, reject);
         });
     }
@@ -81,15 +76,7 @@ export class RealtimeObject extends NeutrinoObject {
             return this._getWebSocketClient().callRead({_id: this._id})
                 .then((m: Message) => {
                     this._suspendUpdates();
-
-                    Object.keys(this).forEach(k => {
-                        if (k !== '_id') {
-                            delete this[k];
-                        }
-                    });
-
-                    _.extend(this, m.pld);
-
+                    this._reset(m.pld);
                     setTimeout(() => this._resumeUpdates());
                     resolve(this);
                 }, reject);

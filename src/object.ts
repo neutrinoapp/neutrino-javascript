@@ -46,7 +46,7 @@ export class NeutrinoObject {
         }
 
         this._suspendUpdates();
-        _.extend(this, initial);
+        _.merge(this, initial);
         setTimeout(() => this._resumeUpdates());
     }
 
@@ -92,7 +92,7 @@ export class NeutrinoObject {
     }
 
     on(ev: string, cb: (ev: EventData) => void, ignoreSuspendFlags?: boolean): NeutrinoObject {
-        ignoreSuspendFlags = ignoreSuspendFlags || true;
+        ignoreSuspendFlags = typeof ignoreSuspendFlags === 'undefined' ? true : ignoreSuspendFlags;
 
         let self = this;
 
@@ -104,6 +104,17 @@ export class NeutrinoObject {
             cb.apply(self, arguments);
         });
 
+        return this;
+    }
+
+    _reset(obj: any): NeutrinoObject {
+        Object.keys(this).forEach(k => {
+            if (k !== '_id') {
+                delete this[k];
+            }
+        });
+
+        _.merge(this, obj);
         return this;
     }
 
