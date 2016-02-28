@@ -32,9 +32,12 @@ export class RealtimeObject extends NeutrinoObject {
             return;
         }
 
+        this._updateSuspended(m);
+    }
+
+    private _updateSuspended(m: Message) {
         this._suspendUpdates();
         this._update(m);
-
         setTimeout(() => this._resumeUpdates());
     }
 
@@ -48,7 +51,11 @@ export class RealtimeObject extends NeutrinoObject {
 
     get(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return resolve(this);
+            return this._getWebSocketClient().callRead({_id: this._id})
+                .then((m: Message) => {
+                    this._updateSuspended(m);
+                    resolve(this);
+                }, reject);
         });
     }
 
@@ -60,18 +67,32 @@ export class RealtimeObject extends NeutrinoObject {
     }
 
     remove(): Promise<string> {
-        return new Promise<string>((resolve) => {
-            this._getWebSocketClient().sendRemove({
+        return new Promise<string>((resolve, reject) => {
+            this._getWebSocketClient().callRemove({
                 _id: this._id
-            }, this._getDataType());
-
-            return resolve(this._id);
+            }).then(() => {
+                resolve(this._id)
+            }, reject);
         });
     }
 
     reset(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return resolve(this);
+            return this._getWebSocketClient().callRead({_id: this._id})
+                .then((m: Message) => {
+                    this._suspendUpdates();
+
+                    Object.keys(this).forEach(k => {
+                        if (k !== '_id') {
+                            delete this[k];
+                        }
+                    });
+
+                    _.extend(this, m.pld);
+
+                    setTimeout(() => this._resumeUpdates());
+                    resolve(this);
+                }, reject);
         });
     }
 }

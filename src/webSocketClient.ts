@@ -6,6 +6,7 @@ export class MessageOp {
     static update = 'update';
     static create = 'create';
     static remove = 'delete';
+    static read = 'read';
 }
 
 export class MessageOrigin {
@@ -27,6 +28,7 @@ export interface Message {
     type: string;
     raw: any;
     topic: string;
+    timestamp: number;
 }
 
 class RealTimeConnection {
@@ -44,6 +46,17 @@ class RealTimeConnection {
                 s.subscribe(cb.topic, cb.callback)
                     .then(() => console.log('Subscribed to: ' + cb.topic), console.error.bind(console));
             });
+        });
+    }
+
+    getSession(): Promise<autobahn.Session> {
+        return new Promise<autobahn.Session>((resolve) => {
+            let interval = setInterval(() => {
+                if (this.session) {
+                    clearInterval(interval);
+                    return resolve(this.session);
+                }
+            }, 50);
         });
     }
 
@@ -133,6 +146,7 @@ export class WebSocketClient {
         m.pld = pld || {};
         m.token = this.app.token;
         m.type = dataType;
+        m.timestamp = new Date().valueOf();
 
         let topicArgs: string[] = [m.op];
         if (m.op === MessageOp.update) {
@@ -150,7 +164,29 @@ export class WebSocketClient {
             publishOpts.exclude_me = false;
         }
 
-        connection.session.publish(m.topic, [JSON.stringify(m)], {}, publishOpts);
+        connection.getSession().then((s: autobahn.Session) => {
+            s.publish(m.topic, [JSON.stringify(m)], {}, publishOpts);
+        });
+    }
+
+    private _call(op: string, obj: any, dataType?: string): Promise<any> {
+        dataType = dataType || this.dataType;
+        let msg: Message = this._buildMessage(op, obj, dataType);
+        let method;
+        if (msg.op === MessageOp.read) {
+            method = 'data.read';
+        } else if (msg.op === MessageOp.create) {
+            method = 'data.create';
+        } else if (msg.op === MessageOp.remove) {
+            method = 'data.remove';
+        }
+
+        let connection = this._getConnection();
+        return new Promise<any>((resolve, reject) => {
+            return connection.getSession().then((s: autobahn.Session) => {
+                s.call(method, [msg]).then(resolve, reject);
+            })
+        });
     }
 
     private _buildTopic(...args: string[]): string {
@@ -190,5 +226,17 @@ export class WebSocketClient {
     sendUpdate(obj: any, dataType?: string): void {
         let m = this._buildMessage(MessageOp.update, obj, dataType);
         this._sendMessage(m);
+    }
+
+    callRead(obj: any, dataType?: string): Promise<any> {
+        return this._call(MessageOp.read, obj, dataType);
+    }
+
+    callCreate(obj: any, dataType?: string): Promise<any> {
+        return this._call(MessageOp.create, obj, dataType);
+    }
+
+    callRemove(obj: any, dataType?: string): Promise<any> {
+        return this._call(MessageOp.remove, obj, dataType);
     }
 }

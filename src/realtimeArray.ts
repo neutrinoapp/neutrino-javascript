@@ -1,5 +1,5 @@
 import {NeutrinoObject} from './object';
-import {Message,MessageOp, WebSocketClient} from './webSocketClient';
+import {Message, MessageOp, WebSocketClient} from './webSocketClient'
 import {App} from './neutrino'
 import {RealtimeObject} from './realtimeObject'
 import {EventEmitter2} from 'eventemitter2'
@@ -8,6 +8,7 @@ import * as _ from 'lodash'
 export class ArrayEvents {
     static add = 'add';
     static remove = 'delete';
+    static change = 'change';
 }
 
 export class RealtimeArray {
@@ -20,10 +21,30 @@ export class RealtimeArray {
         let ws = objects._ws = new WebSocketClient(app, dataType);
         objects._emitter = new EventEmitter2();
 
-        var findObjectIndex = (m: Message) => {
+        let findObjectIndex = (m: Message) => {
             let matchPredicate = {_id: m.pld._id};
             let objectIndex = _.findLastIndex(objects, matchPredicate);
             return objectIndex;
+        };
+
+        let emitCreate = (item: any) => {
+            let evData = {
+                value: item,
+                ev: ArrayEvents.add
+            };
+
+            objects._emitter.emit(ArrayEvents.change, evData, objects);
+            objects._emitter.emit(ArrayEvents.add, evData, objects);
+        };
+
+        let emitDelete = (item: any) => {
+            let evData = {
+                value: item,
+                ev: ArrayEvents.remove
+            };
+
+            objects._emitter.emit(ArrayEvents.change, evData, objects);
+            objects._emitter.emit(ArrayEvents.remove, evData, objects);
         };
 
         ws.onCreateMessage((m: Message) => {
@@ -35,13 +56,7 @@ export class RealtimeArray {
 
             let item = new RealtimeObject(app, m.pld._id, dataType, null, m.pld);
             Array.prototype.push.call(objects, item);
-            let evData = {
-                prop: objects.length[0],
-                value: item,
-                ev: ArrayEvents.add
-            };
-
-            objects._emitter.emit('change', evData);
+            emitCreate(item);
         });
 
         ws.onDeleteMessage((m: Message) => {
@@ -53,13 +68,7 @@ export class RealtimeArray {
 
             let deletedItem = objects[objectIndex];
             _.remove(objects, {_id: m.pld._id});
-            let evData = {
-                prop: objectIndex,
-                value: deletedItem,
-                ev: ArrayEvents.remove
-            };
-
-            objects._emitter.emit('change', evData)
+            emitDelete(deletedItem);
         });
 
         var createMany = (elements): Promise<any> => {
@@ -73,40 +82,61 @@ export class RealtimeArray {
         objects.push = function () {
             let elements = Array.from(arguments);
             createMany(elements).then(realtimeItems => {
-                Array.prototype.push.call(objects, realtimeItems);
+                Array.prototype.push.apply(objects, realtimeItems);
+                realtimeItems.forEach(emitCreate);
             });
         };
 
         objects.pop = function () {
             let popped = Array.prototype.pop.call(objects);
-            ws.sendRemove({_id: popped._id});
+            ws.callRemove({_id: popped._id})
+                .then(() => {
+                    emitDelete(popped);
+                });
+
+            return popped;
         };
 
         objects.splice = function () {
             let spliced = Array.prototype.splice.call(this, arguments);
-            spliced.forEach((o: any) => {
-                ws.sendRemove({_id: o._id});
+            let removePromises = spliced.map((o: any) => {
+                return ws.callRemove({_id: o._id});
             });
+
+            Promise.all(removePromises)
+                .then(removed => {
+                    removed.forEach((id: string, index: number) => {
+                        emitDelete(spliced[index]);
+                    })
+                });
+
+            return spliced;
         };
 
         objects.unshift = function () {
             let elements = Array.from(arguments);
             createMany(elements).then(realtimeItems => {
-                Array.prototype.unshift.call(this, realtimeItems);
+                Array.prototype.unshift.apply(objects, realtimeItems);
+                realtimeItems.forEach(emitDelete);
             });
 
             return this.length - elements.length;
         };
 
         objects.shift = function () {
-            let shifted = Array.prototype.shift.call(this, arguments);
-            ws.sendRemove({_id: shifted._id});
+            let shifted = Array.prototype.shift.apply(objects, arguments);
+            ws.callRemove({_id: shifted._id});
+            emitDelete(shifted);
+
+            return shifted;
         };
 
         objects.remove = function (id: string) {
             let model = {_id: id};
-            _.remove(this, model);
-            ws.sendRemove(model);
+            let removed = _.remove(this, model);
+            ws.callRemove(model).then(() => {
+                return _.first(removed);
+            });
         };
 
         objects.on = function (ev, cb) {

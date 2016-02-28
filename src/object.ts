@@ -14,6 +14,7 @@ export class ObjectEvents {
     static propertyAdded: string = 'property-added';
     static propertyChanged: string = 'property-changed';
     static propertyRemoved: string = 'property-removed';
+    static change: string = 'change';
 }
 
 export interface EventData {
@@ -76,6 +77,7 @@ export class NeutrinoObject {
             };
 
             this.emit(event, evData);
+            this.emit(ObjectEvents.change, evData);
         });
     }
 
@@ -90,6 +92,8 @@ export class NeutrinoObject {
     }
 
     on(ev: string, cb: (ev: EventData) => void, ignoreSuspendFlags?: boolean): NeutrinoObject {
+        ignoreSuspendFlags = ignoreSuspendFlags || true;
+
         let self = this;
 
         this._getEmitter().on(ev, function () {
@@ -101,13 +105,6 @@ export class NeutrinoObject {
         });
 
         return this;
-    }
-
-    onChanged(cb: (ev: EventData) => void): void {
-        this
-            .on(ObjectEvents.propertyAdded, cb, true)
-            .on(ObjectEvents.propertyRemoved, cb, true)
-            .on(ObjectEvents.propertyChanged, cb, true);
     }
 
     _merge(obj: any): NeutrinoObject {
