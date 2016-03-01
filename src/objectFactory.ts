@@ -38,7 +38,7 @@ export class ObjectFactory {
             promise
                 .then((objects: any[]) => {
                     if (opts.realtime) {
-                        let realtimeArray = RealtimeArray.make(this.app, dataType, objects);
+                        let realtimeArray = RealtimeArray.make(this.app, dataType, objects, opts);
                         return resolve(realtimeArray)
                     }
 

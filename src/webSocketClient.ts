@@ -43,7 +43,7 @@ class RealTimeConnection {
         this.session = s;
         setTimeout(() => {
             this._callbacks.forEach(cb => {
-                s.subscribe(cb.topic, cb.callback)
+                s.subscribe(cb.topic, cb.callback, cb.opts)
                     .then(() => console.log('Subscribed to: ' + cb.topic), console.error.bind(console));
             });
         });
@@ -60,8 +60,11 @@ class RealTimeConnection {
         });
     }
 
-    subscribeToSession(topic: string, cb) {
-        let callbackWrapper = (e) => {
+    subscribeToSession(topic: string, cb, opts?: any) {
+        opts = opts || {};
+        delete opts.realtime; //we do not need this to get to the server anyways
+
+        let callbackWrapped = (e) => {
             if (e.length) {
                 let msg: Message = JSON.parse(e[0]);
                 return cb(msg);
@@ -72,11 +75,12 @@ class RealTimeConnection {
 
         this._callbacks.push({
             topic: topic,
-            callback: callbackWrapper
+            callback: callbackWrapped,
+            opts: opts
         });
 
         if (this.session) {
-            this.session.subscribe(topic, callbackWrapper);
+            this.session.subscribe(topic, callbackWrapped, opts);
         }
     }
 }
@@ -198,14 +202,14 @@ export class WebSocketClient {
         return [this.defaultTopic].concat(args).join('.');
     }
 
-    onDeleteMessage(cb): WebSocketClient {
+    onDeleteMessage(cb, opts: any): WebSocketClient {
         let topic = this._buildTopic(MessageOp.remove);
-        return this.onMessage(topic, cb);
+        return this.onMessage(topic, cb, opts);
     }
 
-    onCreateMessage(cb): WebSocketClient {
+    onCreateMessage(cb, opts: any): WebSocketClient {
         let topic = this._buildTopic(MessageOp.create);
-        return this.onMessage(topic, cb);
+        return this.onMessage(topic, cb, opts);
     }
 
     onUpdateMessage(cb, id: string): WebSocketClient {
@@ -213,8 +217,8 @@ export class WebSocketClient {
         return this.onMessage(topic, cb);
     }
 
-    onMessage(topic: string, cb): WebSocketClient {
-        this._getConnection().subscribeToSession(topic, cb);
+    onMessage(topic: string, cb, opts?: any): WebSocketClient {
+        this._getConnection().subscribeToSession(topic, cb, opts);
         return this;
     }
 

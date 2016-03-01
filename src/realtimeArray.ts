@@ -12,7 +12,7 @@ export class ArrayEvents {
 }
 
 export class RealtimeArray {
-    static make(app: App, dataType: string, arr: any): NeutrinoObject[] {
+    static make(app: App, dataType: string, arr: any, opts: any): NeutrinoObject[] {
         let objects = arr.map((o: any) => {
             return new RealtimeObject(app, o._id, dataType, null, o);
         });
@@ -57,7 +57,7 @@ export class RealtimeArray {
             let item = new RealtimeObject(app, m.pld._id, dataType, null, m.pld);
             Array.prototype.push.call(objects, item);
             emitCreate(item);
-        });
+        }, opts);
 
         ws.onDeleteMessage((m: Message) => {
             let objectIndex = findObjectIndex(m);
@@ -69,7 +69,7 @@ export class RealtimeArray {
             let deletedItem = objects[objectIndex];
             _.remove(objects, {_id: m.pld._id});
             emitDelete(deletedItem);
-        });
+        }, opts);
 
         var createMany = (elements): Promise<any> => {
             let promises = elements.map(e => {
