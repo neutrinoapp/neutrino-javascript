@@ -4,6 +4,7 @@ import {Authentication} from './auth'
 import {Data} from './data'
 import {ObjectEvents} from './object'
 import {ArrayEvents} from './realtimeArray'
+import Utils from './utils'
 
 interface AppOptions {
     host?: string
@@ -19,7 +20,7 @@ export class App {
     appHost: string;
     realtimeHost: string;
     token: string = '';
-    _uniqueId: string = (Date.now() + (Math.round(Math.random() * Date.now()))) + '';
+    _uniqueId: string = Utils.random();
     auth: Authentication;
 
     private _dataCache: AppCache = {};

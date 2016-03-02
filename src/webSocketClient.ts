@@ -1,6 +1,7 @@
 import {App} from './neutrino'
 import {EventEmitter2} from 'eventemitter2';
 import * as autobahn from 'autobahn'
+import Utils from './utils';
 
 export class MessageOp {
     static update = 'update';
@@ -102,7 +103,7 @@ export class WebSocketClient {
         if (this.dataType) {
             this.defaultTopic = [this.app.appId, this.dataType].join('.');
         } else {
-            //TODO:
+            this.defaultTopic = [this.app.appId].join('.')
         }
 
         this._handleConnection();
@@ -154,7 +155,7 @@ export class WebSocketClient {
         m.type = dataType;
         m.timestamp = new Date().valueOf();
 
-        let topicArgs: string[] = [m.op];
+        let topicArgs: string[] = [dataType, m.op];
         if (m.op === MessageOp.update) {
             topicArgs.push(m.pld._id);
         }
@@ -203,12 +204,22 @@ export class WebSocketClient {
     }
 
     onDeleteMessage(cb, opts: any): WebSocketClient {
-        let topic = this._buildTopic(MessageOp.remove);
+        let topicArgs: string[] = [MessageOp.remove];
+        if (opts.filter) {
+            topicArgs.push(Utils.random());
+        }
+
+        let topic = this._buildTopic(...topicArgs);
         return this.onMessage(topic, cb, opts);
     }
 
     onCreateMessage(cb, opts: any): WebSocketClient {
-        let topic = this._buildTopic(MessageOp.create);
+        let topicArgs: string[] = [MessageOp.create];
+        if (opts.filter) {
+            topicArgs.push(Utils.random());
+        }
+
+        let topic = this._buildTopic(...topicArgs);
         return this.onMessage(topic, cb, opts);
     }
 
