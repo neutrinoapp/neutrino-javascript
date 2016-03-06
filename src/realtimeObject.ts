@@ -13,8 +13,8 @@ export class RealtimeObject extends NeutrinoObject {
 
         setTimeout(() => {
             //Delay to avoid any unwanted early events
-            webSocketClient.onUpdateMessage(this._processMessage.bind(this), this._id);
-            //webSocketClient.onMessage(this._processMessage.bind(this), this._id);
+            webSocketClient.onUpdateMessage(this._processMessage.bind(this), this.id);
+            //webSocketClient.onMessage(this._processMessage.bind(this), this.id);
 
             this.on(ObjectEvents.propertyAdded, this._sendUpdate.bind(this), false);
             this.on(ObjectEvents.propertyChanged, this._sendUpdate.bind(this), false);
@@ -47,7 +47,7 @@ export class RealtimeObject extends NeutrinoObject {
 
     get(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return this._getWebSocketClient().callRead({_id: this._id})
+            return this._getWebSocketClient().callRead({id: this.id})
                 .then((data: any) => {
                     this._updateSuspended(data);
                     resolve(this);
@@ -65,15 +65,15 @@ export class RealtimeObject extends NeutrinoObject {
 
     remove(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this._getWebSocketClient().callRemove({_id: this._id}, null, {notify: true}).then(() => {
-                return resolve(this._id)
+            this._getWebSocketClient().callRemove({id: this.id}, null, {notify: true}).then(() => {
+                return resolve(this.id)
             }, reject);
         });
     }
 
     reset(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return this._getWebSocketClient().callRead({_id: this._id})
+            return this._getWebSocketClient().callRead({id: this.id})
                 .then((m: Message) => {
                     this._suspendUpdates();
                     this._reset(m.pld);

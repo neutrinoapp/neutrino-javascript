@@ -27,10 +27,10 @@ export interface EventData {
 export class NeutrinoObject {
     static _propertyStore: WeakMap<NeutrinoObject, Map<string, any>> = new WeakMap();
 
-    _id: string;
+    id: string;
 
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, observe: boolean, initial?: any) {
-        this._id = id;
+        this.id = id;
 
         let emitter = new EventEmitter2();
         emitter.setMaxListeners(0);
@@ -109,7 +109,7 @@ export class NeutrinoObject {
 
     _reset(obj: any): NeutrinoObject {
         Object.keys(this).forEach(k => {
-            if (k !== '_id') {
+            if (k !== 'id') {
                 delete this[k];
             }
         });

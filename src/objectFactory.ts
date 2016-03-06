@@ -43,7 +43,7 @@ export class ObjectFactory {
                     }
 
                     let ajaxObjects = objects.map((o: any) => {
-                        return new AjaxObject(this.app, o._id, dataType, null, o);
+                        return new AjaxObject(this.app, o.id, dataType, null, o);
                     });
 
                     return resolve(ajaxObjects);

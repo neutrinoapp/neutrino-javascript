@@ -18,7 +18,7 @@ export class AjaxObject extends NeutrinoObject {
     }
 
     _getData(): Promise<any> {
-        return this._getHttpClient().get(this._getDataType(), this._id);
+        return this._getHttpClient().get(this._getDataType(), this.id);
     }
 
     get(): Promise<NeutrinoObject> {
@@ -34,14 +34,14 @@ export class AjaxObject extends NeutrinoObject {
 
     update(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            this._getHttpClient().update(this._getDataType(), this._id, this)
+            this._getHttpClient().update(this._getDataType(), this.id, this)
                 .then(() => resolve(this))
                 .catch(reject);
         });
     }
 
     remove(): Promise<any> {
-        return this._getHttpClient().delete(this._getDataType(), this._id);
+        return this._getHttpClient().delete(this._getDataType(), this.id);
     }
 
     reset(): Promise<NeutrinoObject> {

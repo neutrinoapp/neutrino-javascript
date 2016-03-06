@@ -14,7 +14,7 @@ export class ArrayEvents {
 export class RealtimeArray {
     static make(app: App, dataType: string, arr: any, opts: any): NeutrinoObject[] {
         let objects = arr.map((o: any) => {
-            return new RealtimeObject(app, o._id, dataType, null, o);
+            return new RealtimeObject(app, o.id, dataType, null, o);
         });
 
         let data = app.use(dataType);
@@ -22,7 +22,7 @@ export class RealtimeArray {
         objects._emitter = new EventEmitter2();
 
         let findObjectIndex = (m: Message) => {
-            let matchPredicate = {_id: m.pld._id};
+            let matchPredicate = {id: m.pld.id};
             let objectIndex = _.findLastIndex(objects, matchPredicate);
             return objectIndex;
         };
@@ -54,7 +54,7 @@ export class RealtimeArray {
                 return;
             }
 
-            let item = new RealtimeObject(app, m.pld._id, dataType, null, m.pld);
+            let item = new RealtimeObject(app, m.pld.id, dataType, null, m.pld);
             Array.prototype.push.call(objects, item);
             emitCreate(item);
         }, opts);
@@ -67,7 +67,7 @@ export class RealtimeArray {
             }
 
             let deletedItem = objects[objectIndex];
-            _.remove(objects, {_id: m.pld._id});
+            _.remove(objects, {id: m.pld.id});
             emitDelete(deletedItem);
         }, opts);
 
@@ -89,7 +89,7 @@ export class RealtimeArray {
 
         objects.pop = function () {
             let popped = Array.prototype.pop.call(objects);
-            ws.callRemove({_id: popped._id})
+            ws.callRemove({id: popped.id})
                 .then(() => {
                     emitDelete(popped);
                 });
@@ -100,7 +100,7 @@ export class RealtimeArray {
         objects.splice = function () {
             let spliced = Array.prototype.splice.call(this, arguments);
             let removePromises = spliced.map((o: any) => {
-                return ws.callRemove({_id: o._id});
+                return ws.callRemove({id: o.id});
             });
 
             Promise.all(removePromises)
@@ -125,14 +125,14 @@ export class RealtimeArray {
 
         objects.shift = function () {
             let shifted = Array.prototype.shift.apply(objects, arguments);
-            ws.callRemove({_id: shifted._id});
+            ws.callRemove({id: shifted.id});
             emitDelete(shifted);
 
             return shifted;
         };
 
         objects.remove = function (id: string) {
-            let model = {_id: id};
+            let model = {id: id};
             let removed = _.remove(this, model);
             return ws.callRemove(model).then(() => {
                 let removedObject = _.first(removed);

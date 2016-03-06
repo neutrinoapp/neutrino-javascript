@@ -155,9 +155,15 @@ export class WebSocketClient {
         m.type = dataType;
         m.timestamp = new Date().valueOf();
 
-        let topicArgs: string[] = [dataType, m.op];
+        let topicArgs: string[] = [];
+        if (!this.dataType) {
+            topicArgs.push(dataType);
+        }
+
+        topicArgs.push(m.op);
+
         if (m.op === MessageOp.update) {
-            topicArgs.push(m.pld._id);
+            topicArgs.push(m.pld.id);
         }
 
         m.topic = this._buildTopic(...topicArgs);

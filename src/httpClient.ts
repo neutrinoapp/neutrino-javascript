@@ -76,7 +76,7 @@ export class HttpClient {
     create(type: string, obj: any): Promise<string> {
         return this._buildDataRequest(type, 'POST', obj, null)
             .then((res: any) => {
-                return res._id;
+                return res.id;
             })
     }
 
