@@ -235,6 +235,11 @@ export class WebSocketClient {
     }
 
     onMessage(topic: string, cb, opts?: any): WebSocketClient {
+        opts = _.extend(opts, {
+            appId: this.app.appId,
+            type: this.dataType
+        });
+
         this._getConnection().subscribeToSession(topic, cb, opts);
         return this;
     }
