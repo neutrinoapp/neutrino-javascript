@@ -26,8 +26,6 @@ export class Data {
         return this._factory.create(param, this.dataType, opts);
     }
 
-    //TODO: add filters and such
-    //TODO: add realtime option
     objects(param?: any): Promise<NeutrinoObject[]> {
         param = param || {};
         return this._factory.getMany(this.dataType, param);

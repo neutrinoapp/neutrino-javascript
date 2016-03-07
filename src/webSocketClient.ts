@@ -209,27 +209,35 @@ export class WebSocketClient {
         return [this.defaultTopic].concat(args).join('.');
     }
 
-    onDeleteMessage(cb, opts: any): WebSocketClient {
+    onDeleteMessage(cb, opts?: any): WebSocketClient {
         let topicArgs: string[] = [MessageOp.remove];
         if (opts.filter) {
             topicArgs.push(Utils.random());
         }
 
+        opts = _.extend(opts, {
+            op: MessageOp.remove
+        });
+
         let topic = this._buildTopic(...topicArgs);
         return this.onMessage(topic, cb, opts);
     }
 
-    onCreateMessage(cb, opts: any): WebSocketClient {
+    onCreateMessage(cb, opts?: any): WebSocketClient {
         let topicArgs: string[] = [MessageOp.create];
         if (opts.filter) {
             topicArgs.push(Utils.random());
         }
 
+        opts = _.extend(opts, {
+            op: MessageOp.create
+        });
+
         let topic = this._buildTopic(...topicArgs);
         return this.onMessage(topic, cb, opts);
     }
 
-    onUpdateMessage(cb, id: string): WebSocketClient {
+    onUpdateMessage(cb, id: string, opts?: any): WebSocketClient {
         let topic = this._buildTopic(MessageOp.update, id);
         return this.onMessage(topic, cb);
     }
@@ -237,7 +245,7 @@ export class WebSocketClient {
     onMessage(topic: string, cb, opts?: any): WebSocketClient {
         opts = _.extend(opts, {
             appId: this.app.appId,
-            type: this.dataType
+            type: this.dataType,
         });
 
         this._getConnection().subscribeToSession(topic, cb, opts);

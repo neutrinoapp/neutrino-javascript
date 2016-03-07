@@ -30,21 +30,24 @@ export class ObjectFactory {
         return new Promise<NeutrinoObject[]>((resolve, reject) => {
             let promise;
             if (opts.realtime) {
-                promise = this._webSocketClient.callRead({}, dataType);
+                promise = this._webSocketClient.callRead({}, dataType, opts);
             } else {
-                promise = this._httpClient.get(dataType);
+                promise = this._httpClient.get(dataType, opts);
             }
 
             promise
                 .then((objects: any[]) => {
                     if (opts.realtime) {
                         let realtimeArray = RealtimeArray.make(this.app, dataType, objects, opts);
-                        return resolve(realtimeArray)
+                        realtimeArray['_opts'] = opts;
+                        return resolve(realtimeArray);
                     }
 
                     let ajaxObjects = objects.map((o: any) => {
                         return new AjaxObject(this.app, o.id, dataType, null, o);
                     });
+
+                    ajaxObjects['_opts'] = opts;
 
                     return resolve(ajaxObjects);
                 })
@@ -80,6 +83,8 @@ export class ObjectFactory {
                     } else {
                         object = new AjaxObject(this.app, id, dataType, opts)
                     }
+
+                    object._setProp('opts', opts);
 
                     //TODO: can we get rid of this request as it seems a little redundant?
                     return object.get().then(resolve, reject);
