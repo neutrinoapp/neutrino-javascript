@@ -1,14 +1,16 @@
-import {NeutrinoObject} from './object';
+import {NeutrinoObject, ObjectEvents} from './object';
 import {Message, MessageOp, WebSocketClient} from './webSocketClient'
 import {App} from './neutrino'
 import {RealtimeObject} from './realtimeObject'
 import {EventEmitter2} from 'eventemitter2'
+import utils from './utils'
 import * as _ from 'lodash'
 
 export class ArrayEvents {
     static add = 'add';
     static remove = 'delete';
     static change = 'change';
+    static itemChange = 'item-change';
 }
 
 export class RealtimeArray {
@@ -20,6 +22,8 @@ export class RealtimeArray {
         let data = app.use(dataType);
         let ws = objects._ws = new WebSocketClient(app, dataType);
         objects._emitter = new EventEmitter2();
+        objects._opts = _.clone(opts);
+        objects._id = utils.random();
 
         let findObjectIndex = (m: Message) => {
             let matchPredicate = {id: m.pld.id};
@@ -36,6 +40,17 @@ export class RealtimeArray {
             objects._emitter.emit(ArrayEvents.change, evData, objects);
             objects._emitter.emit(ArrayEvents.add, evData, objects);
         };
+
+        let emitItemChange = (evData: any, object: any) => {
+            objects._emitter.emit(ArrayEvents.itemChange, evData, object, objects);
+        };
+
+        let subscribeToObject = (obj: RealtimeObject) => {
+            obj.on(ObjectEvents.change, emitItemChange);
+        };
+
+        //TODO: unsubscribe from this event
+        objects.forEach(o => subscribeToObject(o));
 
         let emitDelete = (item: any) => {
             let evData = {
@@ -55,6 +70,7 @@ export class RealtimeArray {
             }
 
             let item = new RealtimeObject(app, m.pld.id, dataType, null, m.pld);
+            subscribeToObject(item);
             Array.prototype.push.call(objects, item);
             emitCreate(item);
         }, opts);
@@ -81,10 +97,7 @@ export class RealtimeArray {
 
         objects.push = function () {
             let elements = Array.from(arguments);
-            createMany(elements).then(realtimeItems => {
-                Array.prototype.push.apply(objects, realtimeItems);
-                realtimeItems.forEach(emitCreate);
-            });
+            return createMany(elements);
         };
 
         objects.pop = function () {
@@ -143,6 +156,10 @@ export class RealtimeArray {
 
         objects.on = function (ev, cb) {
             objects._emitter.on(ev, cb);
+        };
+
+        objects.off = function (ev, cb) {
+            objects._emitter.off(ev, cb);
         };
 
         return <NeutrinoObject[]>objects;

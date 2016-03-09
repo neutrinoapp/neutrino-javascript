@@ -32,14 +32,13 @@ export class ObjectFactory {
             if (opts.realtime) {
                 promise = this._webSocketClient.callRead({}, dataType, opts);
             } else {
-                promise = this._httpClient.get(dataType, opts);
+                promise = this._httpClient.get(dataType, null, opts);
             }
 
             promise
                 .then((objects: any[]) => {
                     if (opts.realtime) {
                         let realtimeArray = RealtimeArray.make(this.app, dataType, objects, opts);
-                        realtimeArray['_opts'] = opts;
                         return resolve(realtimeArray);
                     }
 

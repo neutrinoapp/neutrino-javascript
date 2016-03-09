@@ -88,6 +88,13 @@ class RealTimeConnection {
 
 const connectionsMap: Map<string, RealTimeConnection> = new Map();
 
+window.onbeforeunload = () => {
+    let connections = connectionsMap.values();
+    for (let conn of connections) {
+        conn.connection.close('wamp.goodbye.normal', 'page closing');
+    }
+};
+
 export class WebSocketClient {
     private _emitter: EventEmitter2;
 

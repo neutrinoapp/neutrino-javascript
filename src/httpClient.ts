@@ -69,7 +69,7 @@ export class HttpClient {
             });
     }
 
-    get(type: string, id?: string): Promise<any> {
+    get(type: string, id?: string, opts?: any): Promise<any> {
         return this._buildDataRequest(type, 'GET', null, id);
     }
 

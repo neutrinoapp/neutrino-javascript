@@ -91,7 +91,7 @@ export class NeutrinoObject {
         this._getEmitter().emit(ev, data, this);
     }
 
-    on(ev: string, cb: (ev: EventData) => void, ignoreSuspendFlags?: boolean): NeutrinoObject {
+    on(ev: string, cb: any, ignoreSuspendFlags?: boolean): NeutrinoObject {
         ignoreSuspendFlags = typeof ignoreSuspendFlags === 'undefined' ? true : ignoreSuspendFlags;
 
         let self = this;
