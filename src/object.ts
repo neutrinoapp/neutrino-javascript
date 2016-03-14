@@ -6,6 +6,10 @@ import * as _ from 'lodash';
 import {EventEmitter2} from 'eventemitter2'
 const ObjectObserver = observejs.ObjectObserver;
 
+declare var Platform: {
+    performMicrotaskCheckpoint:any
+};
+
 export interface ObjectOptions {
     realtime: boolean;
 }
@@ -22,6 +26,13 @@ export interface EventData {
     value: any;
     old: any;
     ev: string;
+}
+
+if (!Object['observe']) {
+    //observe.js does not work automatically if we do not have Object.observe
+    setInterval(() => {
+        Platform.performMicrotaskCheckpoint();
+    }, 100);
 }
 
 export class NeutrinoObject {

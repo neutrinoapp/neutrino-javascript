@@ -91,7 +91,11 @@ const connectionsMap: Map<string, RealTimeConnection> = new Map();
 window.onbeforeunload = () => {
     let connections = connectionsMap.values();
     for (let conn of connections) {
-        conn.connection.close('wamp.goodbye.normal', 'page closing');
+        try {
+            conn.connection.close('wamp.goodbye.normal', 'page closing');
+        } catch (e) {
+            console.error(e);
+        }
     }
 };
 

@@ -50,7 +50,7 @@ export class RealtimeArray {
         };
 
         //TODO: unsubscribe from this event
-        objects.forEach(o => subscribeToObject(o));
+        objects.forEach((o: RealtimeObject) => subscribeToObject(o));
 
         let emitDelete = (item: any) => {
             let evData = {
