@@ -1,5 +1,5 @@
 import {HttpClient} from "./httpClient";
-import {App} from './neutrino'
+import {App} from './app'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {AjaxObject} from './ajaxObject'
 import {RealtimeObject} from "./realtimeObject";

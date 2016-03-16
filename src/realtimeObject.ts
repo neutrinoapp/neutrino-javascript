@@ -1,5 +1,5 @@
-import {ObjectOptions, NeutrinoObject, ObjectEvents, EventData} from "./object";
-import {App} from "./neutrino";
+import {ObjectOptions, NeutrinoObject, ObjectEvents} from "./object";
+import {App} from "./app";
 import {WebSocketClient, Message, MessageOp} from "./webSocketClient";
 import * as diff from 'deep-diff'
 

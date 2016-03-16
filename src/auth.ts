@@ -1,7 +1,7 @@
 'use strict';
 
 import {HttpClient} from './httpClient';
-import {App} from './neutrino'
+import {App} from './app'
 
 export class Authentication {
     httpClient: HttpClient;

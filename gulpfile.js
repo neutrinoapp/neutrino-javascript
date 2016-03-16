@@ -18,10 +18,11 @@ var main = './src/neutrino.ts';
 var typingsCache = {};
 
 var opts = {
-    entries: [main],
+    entries: main,
     debug: true,
     cache: {},
-    packageCache: {}
+    packageCache: {},
+    standalone: 'Neutrino'
 };
 
 var b = browserify(opts)

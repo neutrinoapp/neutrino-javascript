@@ -1,4 +1,4 @@
-import {App} from './neutrino'
+import {App} from './app'
 import * as diff from 'deep-diff'
 import * as observejs from 'observe-js'
 import * as _ from 'lodash';

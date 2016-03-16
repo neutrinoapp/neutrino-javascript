@@ -1,9 +1,8 @@
 'use strict';
 
-import {App} from './neutrino'
+import {App} from './app'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {HttpClient} from './httpClient'
-import * as _ from 'lodash'
 
 export class AjaxObject extends NeutrinoObject {
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {

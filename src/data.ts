@@ -1,4 +1,4 @@
-import {App} from './neutrino'
+import {App} from './app'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {ObjectFactory} from './objectFactory'
 import {HttpClient} from './httpClient'

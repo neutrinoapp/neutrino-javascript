@@ -1,7 +1,7 @@
 'use strict';
 
 const Client = require('axios');
-import {App} from './neutrino'
+import {App} from './app'
 
 interface HttpHeaders {
     Authorization?: string;

@@ -1,6 +1,6 @@
 import {NeutrinoObject, ObjectEvents} from './object';
 import {Message, MessageOp, WebSocketClient} from './webSocketClient'
-import {App} from './neutrino'
+import {App} from './app'
 import {RealtimeObject} from './realtimeObject'
 import {EventEmitter2} from 'eventemitter2'
 import utils from './utils'

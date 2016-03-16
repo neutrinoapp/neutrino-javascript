@@ -1,4 +1,4 @@
-import {App} from './neutrino'
+import {App} from './app'
 import {EventEmitter2} from 'eventemitter2';
 import * as autobahn from 'autobahn'
 import Utils from './utils';
