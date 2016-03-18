@@ -1,6 +1,5 @@
-var expect,
-    app,
-    N;
+var expect;
+var N;
 
 if (typeof window === 'undefined') {
     chai = require('chai');
@@ -11,27 +10,23 @@ if (typeof window === 'undefined') {
     N = Neutrino;
 }
 
-app = N.app('d837242752dd495ebe623b0db6038d14');
+var app = N.app('d837242752dd495ebe623b0db6038d14');
 
 describe('Neutrino', function () {
-    var accountName = 'testData',
-        accountPass = `123456`,
-        appName = 'test';
+    var accountName = generateRandomString();
+    var accountPass = generateRandomString();
+    var appName = 'test';
 
     before(function (done) {
         app.auth
             .register(accountName, accountPass)
-            .then(function () {
-                return app.auth.login(accountName, accountPass)
-            })
-            .then(function () {
-                done();
-            });
+            .then(() => { return app.auth.login(accountName, accountPass)})
+            .then(() => { done() });
     });
 
     describe('Data', function () {
-        var collection = app.use(appName),
-            data = 'simple test data';
+        var collection = app.use(appName);
+        var data = 'simple test data';
 
         it('should return test data', function (done) {
             collection
@@ -43,3 +38,7 @@ describe('Neutrino', function () {
         });
     });
 });
+
+function generateRandomString() {
+    return Math.random().toString(16).slice(2);
+}
