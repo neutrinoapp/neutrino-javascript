@@ -149,8 +149,13 @@ export class WebSocketClient {
                 this._getConnection().setSession(session);
             };
 
-            conn.onclose = (): boolean => {
-                console.log('Connection for ' + this.app.appId + ' closed');
+            conn.onclose = (reason: string): boolean => {
+                console.log('Connection for ' + this.app.appId + ' closed: ' + reason);
+
+                setTimeout(() => {
+                    conn.open()
+                }, 2000);
+
                 return true;
             };
 
