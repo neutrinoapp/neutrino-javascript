@@ -62,14 +62,14 @@ export class ObjectFactory {
         return this._getAjaxObject(id, dataType, opts)
     }
 
-    create(param: any, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {
+    create(initialObject: any, dataType: string, opts: ObjectOptions): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
             let promise;
 
             if (opts.realtime) {
-                promise = this._webSocketClient.callCreate(param, dataType);
+                promise = this._webSocketClient.callCreate(initialObject, dataType);
             } else {
-                promise = this._httpClient.create(dataType, param)
+                promise = this._httpClient.create(dataType, initialObject)
             }
 
             promise
@@ -77,16 +77,16 @@ export class ObjectFactory {
                     let object;
 
                     if (opts.realtime) {
-                        object = new RealtimeObject(this.app, id, dataType, opts);
+                        object = new RealtimeObject(this.app, id, dataType, opts, initialObject);
 
                     } else {
-                        object = new AjaxObject(this.app, id, dataType, opts)
+                        object = new AjaxObject(this.app, id, dataType, opts, initialObject)
                     }
 
                     object._setProp('opts', opts);
 
-                    //TODO: can we get rid of this request as it seems a little redundant?
-                    return object.get().then(resolve, reject);
+                    //TODO: find a way to remove this (problem with the suspended state).
+                    setTimeout(() => resolve(object));
                 })
                 .catch(reject);
         });
