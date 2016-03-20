@@ -15,6 +15,7 @@ export class ArrayEvents {
 
 export class RealtimeArray {
     static make(app: App, dataType: string, arr: any, opts: any): NeutrinoObject[] {
+        arr = arr || []
         let objects = arr.map((o: any) => {
             return new RealtimeObject(app, o.id, dataType, null, o);
         });

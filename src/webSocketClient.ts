@@ -67,7 +67,14 @@ class RealTimeConnection {
 
         let callbackWrapped = (e) => {
             if (e.length) {
-                let msg: Message = JSON.parse(e[0]);
+                let arg = e[0];
+                let msg: Message;
+                if (typeof arg === 'string') {
+                    msg = JSON.parse(e[0]);
+                } else {
+                    msg = arg;
+                }
+
                 return cb(msg);
             }
 
