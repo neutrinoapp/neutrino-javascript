@@ -1,12 +1,8 @@
-'use strict';
-
 import {Authentication} from './auth'
 import {Data} from './data'
-import {ObjectEvents} from './object'
-import {ArrayEvents} from './realtimeArray'
 import Utils from './utils'
 
-interface AppOptions {
+export interface AppOptions {
     host?: string
     realtimeHost?: string
 }
@@ -30,9 +26,9 @@ export class App {
         private opts?: AppOptions
     ) {
         opts = opts || {};
-        this.host = opts.host || 'http://localhost:5000/v1/';
+        this.host = opts.host || 'http://104.155.97.49/v1/';
         this.appHost = this.host + 'app/' + this.appId + '/';
-        this.realtimeHost = opts.realtimeHost || 'ws://localhost:6000/';
+        this.realtimeHost = opts.realtimeHost || 'ws://23.251.130.65/';
 
         this.auth = new Authentication(this);
     }
@@ -44,19 +40,4 @@ export class App {
 
         return this._dataCache[type];
     }
-
-    static app(appId): App {
-        return new App(appId);
-    }
-}
-
-App['ObjectEvents'] = ObjectEvents;
-App['ArrayEvents'] = ArrayEvents;
-
-if (typeof window !== 'undefined') {
-    window['Neutrino'] = App;
-} else if (typeof module !== 'undefined') {
-    module['exports'] = App;
-} else {
-    this['Neutrino'] = App;
 }

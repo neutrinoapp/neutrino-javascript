@@ -1,7 +1,8 @@
-import {ObjectOptions, NeutrinoObject, ObjectEvents, EventData} from "./object";
-import {App} from "./neutrino";
-import {WebSocketClient, Message, MessageOp} from "./webSocketClient";
+import {ObjectOptions, NeutrinoObject, ObjectEvents} from './object';
+import {App} from './neutrino';
+import {WebSocketClient, Message} from "./webSocketClient";
 import * as diff from 'deep-diff'
+import {NeutrinoPlatform} from './platform'
 
 export class RealtimeObject extends NeutrinoObject {
 
@@ -20,6 +21,8 @@ export class RealtimeObject extends NeutrinoObject {
             this.on(ObjectEvents.propertyChanged, this._sendUpdate.bind(this), false);
             this.on(ObjectEvents.propertyRemoved, this._sendUpdate.bind(this), false);
         });
+
+        NeutrinoPlatform.performMicrotask();
     }
 
     private _sendUpdate() {
