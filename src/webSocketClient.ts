@@ -2,6 +2,7 @@ import {App} from './neutrino'
 import {EventEmitter2} from 'eventemitter2';
 import * as autobahn from 'autobahn'
 import Utils from './utils';
+import * as _ from 'lodash';
 
 export class MessageOp {
     static update = 'update';
@@ -95,16 +96,18 @@ class RealTimeConnection {
 
 const connectionsMap: Map<string, RealTimeConnection> = new Map();
 
-window.onbeforeunload = () => {
-    let connections = connectionsMap.values();
-    for (let conn of connections) {
-        try {
-            conn.connection.close('wamp.goodbye.normal', 'page closing');
-        } catch (e) {
-            console.error(e);
+if (typeof window !== 'undefined') {
+    window.onbeforeunload = () => {
+        let connections = connectionsMap.values();
+        for (let conn of connections) {
+            try {
+                conn.connection.close('wamp.goodbye.normal', 'page closing');
+            } catch (e) {
+                console.error(e);
+            }
         }
-    }
-};
+    };
+}
 
 export class WebSocketClient {
     private _emitter: EventEmitter2;

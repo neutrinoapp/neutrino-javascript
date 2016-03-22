@@ -35,7 +35,7 @@ export class RealtimeObject extends NeutrinoObject {
             return;
         }
 
-        this._updateSuspended(m.pld);
+        this._merge(m.pld);
     }
 
     private _updateSuspended(data: any) {
@@ -50,7 +50,8 @@ export class RealtimeObject extends NeutrinoObject {
 
     get(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return this._getWebSocketClient().callRead({id: this.id})
+            return this._getWebSocketClient()
+                .callRead({id: this.id})
                 .then((data: any) => {
                     this._updateSuspended(data);
                     resolve(this);
@@ -60,15 +61,19 @@ export class RealtimeObject extends NeutrinoObject {
 
     update(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            this._getWebSocketClient().callUpdate(this, null, {notify: true}).then(() => {
-                return resolve(this);
-            }, reject);
+            this._getWebSocketClient()
+                .callUpdate(this, null, {notify: true})
+                .then(() => {
+                    return resolve(this);
+                }, reject);
         });
     }
 
     remove(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this._getWebSocketClient().callRemove({id: this.id}, null, {notify: true}).then(() => {
+            this._getWebSocketClient()
+                .callRemove({id: this.id}, null, {notify: true})
+                .then(() => {
                 return resolve(this.id)
             }, reject);
         });

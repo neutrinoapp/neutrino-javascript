@@ -47,7 +47,7 @@ export class RealtimeArray {
         };
 
         let subscribeToObject = (obj: RealtimeObject) => {
-            obj.on(ObjectEvents.change, emitItemChange);
+            obj.on(ObjectEvents.change, emitItemChange, false);
         };
 
         //TODO: unsubscribe from this event

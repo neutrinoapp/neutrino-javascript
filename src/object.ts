@@ -45,9 +45,11 @@ export class NeutrinoObject {
             this._initObserve();
         }
 
-        this._suspendUpdates();
-        _.merge(this, initial);
-        setTimeout(() => this._resumeUpdates());
+        if (initial) {
+            this._suspendUpdates();
+            _.merge(this, initial);
+            setTimeout(() => this._resumeUpdates());
+        }
     }
 
     _suspendUpdates() {

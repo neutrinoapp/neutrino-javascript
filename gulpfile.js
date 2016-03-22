@@ -12,6 +12,7 @@ var tsify = require('tsify');
 var watchify = require('watchify');
 var walkSync = require('walk-sync');
 var path = require('path');
+var mocha = require('gulp-mocha');
 
 var main = './src/neutrino.ts';
 var typingsCache = {};
@@ -65,10 +66,7 @@ function build(done) {
 
 gulp.task('build', build);
 
-gulp.task('test', ['build'], function () {
-    gulp.src('./test/neutrino-test.js')
-        .pipe(mocha())
-        .once('end', function () {
-            process.exit();
-        });
+gulp.task('test', () => {
+    return gulp.src('./test/test.js', {read: false})
+        .pipe(mocha({reporter: 'nyan'}));
 });
