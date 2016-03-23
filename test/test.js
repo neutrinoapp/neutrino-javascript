@@ -1,6 +1,9 @@
+'use strict';
+
 const timeout = 3000;
 var expect;
 var N;
+var chai;
 
 if (typeof window === 'undefined') {
     chai = require('chai');

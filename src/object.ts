@@ -2,6 +2,7 @@ import {App} from './neutrino'
 import * as diff from 'deep-diff'
 import * as observejs from 'observe-js'
 import * as _ from 'lodash';
+import {NeutrinoPlatform} from './platform'
 
 import {EventEmitter2} from 'eventemitter2'
 const ObjectObserver = observejs.ObjectObserver;
@@ -40,6 +41,7 @@ export class NeutrinoObject {
         this._setProp('app', app);
         this._setProp('dataType', dataType);
         this._setProp('opts', opts);
+        this._setProp('events', {});
 
         if (observe) {
             this._initObserve();
@@ -48,7 +50,8 @@ export class NeutrinoObject {
         if (initial) {
             this._suspendUpdates();
             _.merge(this, initial);
-            setTimeout(() => this._resumeUpdates());
+            NeutrinoPlatform.performMicrotask();
+            this._resumeUpdates();
         }
     }
 
@@ -98,13 +101,39 @@ export class NeutrinoObject {
 
         let self = this;
 
-        this._getEmitter().on(ev, function () {
+        var eventHandler = function () {
             if (!ignoreSuspendFlags && self._getProp('suspended')) {
                 return;
             }
 
             cb.apply(self, arguments);
-        });
+        };
+
+        let events = this._getProp('events');
+        if (!Array.isArray(events[ev])) {
+            events[ev] = [];
+        }
+
+        events[ev].push(eventHandler);
+        this._getEmitter().on(ev, eventHandler);
+
+        return this;
+    }
+
+    off(ev: string, cb: any): NeutrinoObject {
+        this._getEmitter().off(ev, cb);
+        return this;
+    }
+
+    detach(): NeutrinoObject {
+        let events = this._getProp('events');
+        for (let ev in events) {
+            let handlers = events[ev];
+            handlers.forEach((handler) => {
+                this.off(ev, handler)
+            });
+            delete events[ev];
+        }
 
         return this;
     }

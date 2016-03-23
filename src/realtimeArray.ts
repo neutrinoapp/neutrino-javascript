@@ -15,16 +15,15 @@ export class ArrayEvents {
 
 export class RealtimeArray {
     static make(app: App, dataType: string, arr: any, opts: any): NeutrinoObject[] {
-        arr = arr || []
+        arr = arr || [];
         let objects = arr.map((o: any) => {
             return new RealtimeObject(app, o.id, dataType, null, o);
         });
 
-        let data = app.use(dataType);
         let ws = objects._ws = new WebSocketClient(app, dataType);
         objects._emitter = new EventEmitter2();
         objects._opts = _.clone(opts);
-        objects._id = utils.random();
+        objects.id = utils.random();
 
         let findObjectIndex = (m: Message) => {
             let matchPredicate = {id: m.pld.id};
@@ -50,7 +49,10 @@ export class RealtimeArray {
             obj.on(ObjectEvents.change, emitItemChange, false);
         };
 
-        //TODO: unsubscribe from this event
+        let unsubscribeFromObject = (obj: RealtimeObject) => {
+            obj.off(ObjectEvents.change, emitItemChange);
+        };
+
         objects.forEach((o: RealtimeObject) => subscribeToObject(o));
 
         let emitDelete = (item: any) => {
@@ -74,7 +76,7 @@ export class RealtimeArray {
             subscribeToObject(item);
             Array.prototype.push.call(objects, item);
             emitCreate(item);
-        }, opts);
+        }, opts, objects.id);
 
         ws.onDeleteMessage((m: Message) => {
             let objectIndex = findObjectIndex(m);
@@ -84,13 +86,15 @@ export class RealtimeArray {
             }
 
             let deletedItem = objects[objectIndex];
+            deletedItem.detach();
+            unsubscribeFromObject(deletedItem);
             _.remove(objects, {id: m.pld.id});
             emitDelete(deletedItem);
-        }, opts);
+        }, opts, objects.id);
 
         var createMany = (elements): Promise<any> => {
             let promises = elements.map(e => {
-                return data.object(e, {realtime: true});
+                return ws.callCreate(e);
             });
 
             return Promise.all(promises);
