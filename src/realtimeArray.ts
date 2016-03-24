@@ -25,8 +25,8 @@ export class RealtimeArray {
         objects._opts = _.clone(opts);
         objects.id = utils.random();
 
-        let findObjectIndex = (m: Message) => {
-            let matchPredicate = {id: m.pld.id};
+        let findObjectIndex = (id: string) => {
+            let matchPredicate = {id: id};
             let objectIndex = _.findLastIndex(objects, matchPredicate);
             return objectIndex;
         };
@@ -65,21 +65,26 @@ export class RealtimeArray {
             objects._emitter.emit(ArrayEvents.remove, evData, objects);
         };
 
-        ws.onCreateMessage((m: Message) => {
-            let objectIndex = findObjectIndex(m);
+        let addObject = (id: string, initial: any): RealtimeObject => {
+            let objectIndex = findObjectIndex(id);
 
             if (objectIndex !== -1) {
-                return;
+                return objects[objectIndex];
             }
 
-            let item = new RealtimeObject(app, m.pld.id, dataType, null, m.pld);
+            let item = new RealtimeObject(app, id, dataType, null, initial);
             subscribeToObject(item);
             Array.prototype.push.call(objects, item);
             emitCreate(item);
+            return item
+        };
+
+        ws.onCreateMessage((m: Message) => {
+            addObject(m.pld.id, m.pld);
         }, opts, objects.id);
 
         ws.onDeleteMessage((m: Message) => {
-            let objectIndex = findObjectIndex(m);
+            let objectIndex = findObjectIndex(m.pld.id);
 
             if (objectIndex === -1) {
                 return;
@@ -94,7 +99,10 @@ export class RealtimeArray {
 
         var createMany = (elements): Promise<any> => {
             let promises = elements.map(e => {
-                return ws.callCreate(e);
+                return ws.callCreate(e)
+                    .then(id => {
+                        return addObject(id, e);
+                    })
             });
 
             return Promise.all(promises);

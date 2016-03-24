@@ -1,6 +1,7 @@
 'use strict';
 
-const timeout = 3000;
+const timeout = 10000;
+
 var expect;
 var N;
 var chai;
