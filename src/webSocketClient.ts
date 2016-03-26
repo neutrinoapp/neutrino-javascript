@@ -30,7 +30,7 @@ export interface Message {
     type: string;
     raw: any;
     topic: string;
-    timestamp: number;
+    timestamp: string;
 }
 
 class RealTimeConnection {
@@ -179,7 +179,18 @@ export class WebSocketClient {
         m.pld = pld || {};
         m.token = this.app.token;
         m.type = dataType;
-        m.timestamp = new Date().valueOf();
+
+        let now = new Date();
+        let utcDate =  new Date(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            now.getUTCHours(),
+            now.getUTCMinutes(),
+            now.getUTCSeconds()
+        );
+
+        m.timestamp = utcDate.toISOString();
 
         let topicArgs: string[] = [];
         if (!this.dataType) {
