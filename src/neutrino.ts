@@ -30,9 +30,12 @@ export class App {
         private opts?: AppOptions
     ) {
         opts = opts || {};
-        this.host = opts.host || 'http://localhost:5000/v1/';
+        //http://104.155.50.163/v1/ | http://localhost:5000/v1
+        //ws://104.155.40.140/ | ws://localhost:6000/
+
+        this.host = opts.host || 'http://104.155.50.163/v1/';
         this.appHost = this.host + 'app/' + this.appId + '/';
-        this.realtimeHost = opts.realtimeHost || 'ws://localhost:6000/';
+        this.realtimeHost = opts.realtimeHost || 'ws://104.155.40.140/';
 
         this.auth = new Authentication(this);
     }
