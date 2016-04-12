@@ -2,6 +2,7 @@ import {App} from './neutrino'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {ObjectFactory} from './objectFactory'
 import {HttpClient} from './httpClient'
+import * as _ from 'lodash'
 
 export class Data {
     private _factory: ObjectFactory;
@@ -17,6 +18,9 @@ export class Data {
 
     object(param?: any, opts?: ObjectOptions): Promise<NeutrinoObject> {
         opts = opts || <ObjectOptions>{};
+        _.defaults(opts, {
+            realtime: true
+        });
 
         if (typeof param === 'string') {
             let id: string = <string>param;

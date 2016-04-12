@@ -15,44 +15,41 @@ if (typeof window === 'undefined') {
     N = Neutrino;
 }
 
-var app = N.app('d65b9b69a71e408f9e8b4d6a846a24f4');
+var app = N.app('cf8b71c381ca4eba8b288abdb74810a9');
 
 describe('Neutrino', function () {
     this.timeout(timeout);
     var accountName = generateRandomString();
     var accountPass = generateRandomString();
-    var appName = 'test';
+    var collectionName = 'test';
 
     before(function (done) {
         app.auth
             .register(accountName, accountPass)
-            .then(() => { return app.auth.login(accountName, accountPass) })
-            .then(() => { done() });
+            .then(() => app.auth.login(accountName, accountPass))
+            .then(() => done());
     });
 
     after(function (done) {
-        var collection = app.use(appName);
+        var collection = app.collection(collectionName);
         collection
             .remove()
-            .then(() => { done() });
+            .then(() => done());
     });
 
     describe('Data', function () {
-        var collection = app.use(appName);
+        var collection = app.collection(collectionName);
         var data = 'simple test data';
 
         it('should return test data', function (done) {
-            collection
-                .object({data: data})
-                .then((item) => {
-                    expect(item.data).to.equal(data);
-                    done();
-                });
+            var object = collection.object({data: data});
+            expect(object.data).to.equal(data);
+            done();
         });
     });
 
     describe('Events', function () {
-        var collection = app.use(appName);
+        var collection = app.collection(collectionName);
         var data = 'simple test data';
 
         it('should trigger event on add item', function (done) {

@@ -6,6 +6,7 @@ import {NeutrinoPlatform} from './platform'
 
 import {EventEmitter2} from 'eventemitter2'
 const ObjectObserver = observejs.ObjectObserver;
+ObjectObserver.ignoreObjectObserve(true);
 
 export interface ObjectOptions {
     realtime: boolean;
@@ -16,6 +17,7 @@ export class ObjectEvents {
     static propertyChanged: string = 'property-changed';
     static propertyRemoved: string = 'property-removed';
     static change: string = 'change';
+    static fetch: string = 'fetch';
 }
 
 export interface EventData {
@@ -92,8 +94,13 @@ export class NeutrinoObject {
         }
     }
 
-    emit(ev: string, data: EventData): void {
-        this._getEmitter().emit(ev, data, this);
+    emit(ev: string, data?: any): void {
+        if (data) {
+            this._getEmitter().emit(ev, data, this);
+        } else {
+            this._getEmitter().emit(ev, this);
+        }
+
     }
 
     on(ev: string, cb: any, ignoreSuspendFlags?: boolean): NeutrinoObject {
@@ -122,6 +129,11 @@ export class NeutrinoObject {
 
     off(ev: string, cb: any): NeutrinoObject {
         this._getEmitter().off(ev, cb);
+        return this;
+    }
+
+    once(ev: string, cb: any): NeutrinoObject {
+        this._getEmitter().once(ev, cb);
         return this;
     }
 

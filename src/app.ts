@@ -1,5 +1,5 @@
 import {Authentication} from './auth'
-import {Data} from './data'
+import {Data} from './collection'
 import Utils from './utils'
 
 export interface AppOptions {

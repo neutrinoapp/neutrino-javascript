@@ -1,7 +1,7 @@
 'use strict';
 
 import {Authentication} from './auth'
-import {Data} from './data'
+import {Data} from './collection'
 import {ObjectEvents} from './object'
 import {ArrayEvents} from './realtimeArray'
 import Utils from './utils'
@@ -40,7 +40,7 @@ export class App {
         this.auth = new Authentication(this);
     }
 
-    use(type: string): Data {
+    collection(type: string): Data {
         if (!this._dataCache[type]) {
             this._dataCache[type] = new Data(this, type);
         }
@@ -48,8 +48,8 @@ export class App {
         return this._dataCache[type];
     }
 
-    static app(appId): App {
-        return new App(appId);
+    static app(appId, opts): App {
+        return new App(appId, opts);
     }
 }
 
