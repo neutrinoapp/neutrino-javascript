@@ -5,12 +5,11 @@ import * as diff from 'deep-diff'
 import {NeutrinoPlatform} from './platform'
 
 export class RealtimeObject extends NeutrinoObject {
-
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {
         super(app, id, dataType, opts, true, initial);
         let webSocketClient: WebSocketClient = new WebSocketClient(this._getApp(), this._getDataType());
-
         this._setProp('webSocketClient', webSocketClient);
+        this._setProp('messageHistory', {});
 
         setTimeout(() => {
             //Delay to avoid any unwanted early events
@@ -30,6 +29,20 @@ export class RealtimeObject extends NeutrinoObject {
     }
 
     private _processMessage(m: Message) {
+        let historyKey = m.op + '_' + m.topic;
+        let messageHistory = this._getProp('messageHistory');
+        if (messageHistory[historyKey]) {
+            var lastMessage = messageHistory[historyKey];
+            var lastMessageTimestamp = new Date(lastMessage.timestamp).getDate();
+            var newMessageTimestamp = new Date(m.timestamp).getDate();
+
+            if (newMessageTimestamp < lastMessageTimestamp || newMessageTimestamp === lastMessageTimestamp) {
+                return;
+            }
+        }
+
+        messageHistory[historyKey] = m;
+
         let objDiff = diff.diff(this, m.pld);
         if (!objDiff || (Array.isArray(objDiff) && !objDiff.length)) {
             return;

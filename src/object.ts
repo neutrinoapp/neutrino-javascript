@@ -6,7 +6,7 @@ import {NeutrinoPlatform} from './platform'
 
 import {EventEmitter2} from 'eventemitter2'
 const ObjectObserver = observejs.ObjectObserver;
-ObjectObserver.ignoreObjectObserve(true);
+observejs['Observer']['ignoreObjectObserve'](true);
 
 export interface ObjectOptions {
     realtime: boolean;

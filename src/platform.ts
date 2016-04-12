@@ -9,10 +9,6 @@ export class NeutrinoPlatform {
     }
 }
 
-if (!Object['observe']) {
-    //observe.js does not work automatically if we do not have Object.observe
-    //TODO: setImmediate?
-    setInterval(() => {
-        NeutrinoPlatform.performMicrotask();
-    }, 100);
-}
+setInterval(() => {
+    NeutrinoPlatform.performMicrotask();
+}, 10);
