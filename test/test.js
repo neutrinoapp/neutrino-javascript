@@ -42,9 +42,12 @@ describe('Neutrino', function () {
         var data = 'simple test data';
 
         it('should return test data', function (done) {
-            var object = collection.object({data: data});
-            expect(object.data).to.equal(data);
-            done();
+            collection
+                .object({data: data})
+                .then((item) => {
+                    expect(item.data).to.equal(data);
+                    done();
+                });
         });
     });
 
