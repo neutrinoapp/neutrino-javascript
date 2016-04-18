@@ -3,8 +3,8 @@ import * as diff from 'deep-diff'
 import * as observejs from 'observe-js'
 import * as _ from 'lodash';
 import {NeutrinoPlatform} from './platform'
-
 import {EventEmitter2} from 'eventemitter2'
+
 const ObjectObserver = observejs.ObjectObserver;
 observejs['Observer']['ignoreObjectObserve'](true);
 

@@ -2,6 +2,7 @@
 
 const Client = require('axios');
 import {App} from './neutrino'
+import * as _ from 'lodash'
 
 interface HttpHeaders {
     Authorization?: string;
@@ -24,7 +25,7 @@ export class HttpClient {
         let path = urls.join('/');
         let headers: HttpHeaders = {};
 
-        Object.assign(headers, optionalHeaders);
+        headers = _.extend(headers, optionalHeaders);
 
         if (this.app.token) {
             headers.Authorization = 'Bearer ' + this.app.token;
