@@ -49,13 +49,21 @@ export class RealtimeObject extends NeutrinoObject {
             return;
         }
 
-        this._merge(m.pld);
+        this._updateSuspended(m.pld);
+        // this._merge(m.pld);
     }
 
     private _updateSuspended(data: any) {
+        //TODO:
+        let updateTimeout = this._getProp<number>('updateTimeout');
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+
         this._suspendUpdates();
         this._merge(data);
-        setTimeout(() => this._resumeUpdates());
+        let timeout = setTimeout(() => this._resumeUpdates(), 25);
+        this._setProp('updateTimeout', timeout);
     }
 
     _getWebSocketClient(): WebSocketClient {
