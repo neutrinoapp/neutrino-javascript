@@ -1,8 +1,9 @@
 import {ObjectOptions, NeutrinoObject, ObjectEvents} from './object';
 import {App} from './neutrino';
-import {WebSocketClient, Message} from "./webSocketClient";
+import {WebSocketClient} from "./webSocketClient";
 import * as diff from 'deep-diff'
 import {NeutrinoPlatform} from './platform'
+import {Message} from './message';
 
 export class RealtimeObject extends NeutrinoObject {
     constructor(app: App, id: string, dataType: string, opts: ObjectOptions, initial?: any) {
@@ -33,8 +34,8 @@ export class RealtimeObject extends NeutrinoObject {
         let messageHistory = this._getProp('messageHistory');
         if (messageHistory[historyKey]) {
             var lastMessage = messageHistory[historyKey];
-            var lastMessageTimestamp = new Date(lastMessage.timestamp).getDate();
-            var newMessageTimestamp = new Date(m.timestamp).getDate();
+            var lastMessageTimestamp = new Date(lastMessage.timestamp);
+            var newMessageTimestamp = new Date(m.timestamp);
 
             if (newMessageTimestamp < lastMessageTimestamp || newMessageTimestamp === lastMessageTimestamp) {
                 return;

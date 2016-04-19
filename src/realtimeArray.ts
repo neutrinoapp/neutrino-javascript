@@ -1,10 +1,11 @@
 import {NeutrinoObject, ObjectEvents} from './object';
-import {Message, MessageOp, WebSocketClient} from './webSocketClient'
+import {WebSocketClient} from './webSocketClient'
 import {App} from './neutrino'
 import {RealtimeObject} from './realtimeObject'
 import {EventEmitter2} from 'eventemitter2'
 import utils from './utils'
 import * as _ from 'lodash'
+import {Message} from './message';
 
 export class ArrayEvents {
     static add = 'add';

@@ -1,8 +1,9 @@
 import {App} from './neutrino'
 import {EventEmitter2} from 'eventemitter2';
 import * as autobahn from 'autobahn'
-import Utils from './utils';
 import * as _ from 'lodash';
+import {RealTimeConnection} from './realtimeConnection';
+import {Message} from './message';
 
 export class MessageOp {
     static update = 'update';
@@ -18,80 +19,6 @@ export class MessageOrigin {
 
 export class Realms {
     static defaultRealm = 'default';
-}
-
-export interface Message {
-    app: string;
-    op: string;
-    options: any;
-    origin: string;
-    pld: any;
-    token: string;
-    type: string;
-    raw: any;
-    topic: string;
-    timestamp: string;
-}
-
-class RealTimeConnection {
-    private _callbacks = [];
-
-    constructor(
-        public connection?: autobahn.Connection,
-        public session?: autobahn.Session
-    ) {}
-
-    setSession(s: autobahn.Session) {
-        this.session = s;
-        setTimeout(() => {
-            this._callbacks.forEach(cb => {
-                s.subscribe(cb.topic, cb.callback, cb.opts)
-                    .then(() => console.log('Subscribed to: ' + cb.topic), console.error.bind(console));
-            });
-        });
-    }
-
-    getSession(): Promise<autobahn.Session> {
-        return new Promise<autobahn.Session>((resolve) => {
-            let interval = setInterval(() => {
-                if (this.session) {
-                    clearInterval(interval);
-                    return resolve(this.session);
-                }
-            }, 50);
-        });
-    }
-
-    subscribeToSession(topic: string, cb, opts?: any) {
-        opts = opts || {};
-        delete opts.realtime; //we do not need this to get to the server anyways
-
-        let callbackWrapped = (e) => {
-            if (e.length) {
-                let arg = e[0];
-                let msg: Message;
-                if (typeof arg === 'string') {
-                    msg = JSON.parse(e[0]);
-                } else {
-                    msg = arg;
-                }
-
-                return cb(msg);
-            }
-
-            return cb(e);
-        };
-
-        this._callbacks.push({
-            topic: topic,
-            callback: callbackWrapped,
-            opts: opts
-        });
-
-        if (this.session) {
-            this.session.subscribe(topic, callbackWrapped, opts);
-        }
-    }
 }
 
 const connectionsMap: Map<string, RealTimeConnection> = new Map();

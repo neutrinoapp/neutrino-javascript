@@ -3,8 +3,7 @@ import {App} from './neutrino'
 import {NeutrinoObject, ObjectOptions} from './object'
 import {AjaxObject} from './ajaxObject'
 import {RealtimeObject} from "./realtimeObject";
-import * as _ from 'lodash';
-import {WebSocketClient, Message, MessageOp} from "./webSocketClient";
+import {WebSocketClient} from "./webSocketClient";
 import {RealtimeArray} from './realtimeArray'
 
 export class ObjectFactory {
