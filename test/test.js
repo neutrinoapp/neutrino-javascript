@@ -15,13 +15,13 @@ if (typeof window === 'undefined') {
     N = Neutrino;
 }
 
-var app = N.app('cf8b71c381ca4eba8b288abdb74810a9');
+var app = N.app('demo');
 
 describe('Neutrino', function () {
     this.timeout(timeout);
     var accountName = generateRandomString();
     var accountPass = generateRandomString();
-    var collectionName = 'test';
+    var collectionName = 'demo';
 
     before(function (done) {
         app.auth
@@ -33,7 +33,7 @@ describe('Neutrino', function () {
     after(function (done) {
         var collection = app.collection(collectionName);
         collection
-            .remove()
+            .delete()
             .then(() => done());
     });
 
@@ -42,12 +42,8 @@ describe('Neutrino', function () {
         var data = 'simple test data';
 
         it('should return test data', function (done) {
-            collection
-                .object({data: data})
-                .then((item) => {
-                    expect(item.data).to.equal(data);
-                    done();
-                });
+            var realtimeObject = collection.create({data: data});
+            expect(realtimeObject.data).to.equal(data);
         });
     });
 
@@ -56,14 +52,8 @@ describe('Neutrino', function () {
         var data = 'simple test data';
 
         it('should trigger event on add item', function (done) {
-            collection
-                .objects({ realtime: true })
-                .then((items) => {
-                    items.on(N.ArrayEvents.add, onItemAdded);
-                })
-                .then(() => {
-                    collection.object({data: data});
-                });
+            collection.on(N.ArrayEvents.add, onItemAdded);
+            collection.create({data: data});
 
             function onItemAdded(event, items) {
                 expect(event.ev).to.equal(N.ArrayEvents.add);
@@ -76,18 +66,9 @@ describe('Neutrino', function () {
         it('should trigger event on item change', function (done) {
             var changedData = 'not simple test data';
 
-            collection
-                .objects({ realtime: true })
-                .then((objects) => {
-                    objects.on(N.ArrayEvents.itemChange, onItemChange);
-                    return objects;
-                })
-                .then((objects) => {
-                    return objects.push({data: data});
-                })
-                .then((objects) => {
-                    return objects[0].data = changedData;
-                });
+            collection.on(N.ArrayEvents.itemChange, onItemChange);
+            var realtimeObject = collection.create({data: data});
+            realtimeObject.data = changedData;
 
             function onItemChange(event, item, items) {
                 expect(event.ev).to.equal(N.ObjectEvents.propertyChanged);
@@ -100,20 +81,10 @@ describe('Neutrino', function () {
         it('should trigger event on item remove', function (done) {
             let removedItemId;
 
-            collection
-                .objects({ realtime: true })
-                .then((objects) => {
-                    objects.on(N.ArrayEvents.remove, onItemRemove);
-                    return objects;
-                })
-                .then((objects) => {
-                    return objects.push({data: data});
-                })
-                .then((objects) => {
-                    removedItemId = objects[0].id;
-                    return collection.remove(removedItemId);
-                });
-
+            collection.on(N.ArrayEvents.remove, onItemRemove);
+            var realtimeObject = collection.create({data: data});
+            realtimeObject.delete();
+            
             function onItemRemove(event, items) {
                 expect(event.ev).to.equal(N.ArrayEvents.remove);
                 expect(event.value.id).to.equal(removedItemId);

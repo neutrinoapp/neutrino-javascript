@@ -16,13 +16,23 @@ export class Data {
         this._httpClient = new HttpClient(this.app);
     }
 
-    object(param?: any, opts?: ObjectOptions): Promise<NeutrinoObject> {
+    create(param?: any, opts?: ObjectOptions): Promise<NeutrinoObject> {
         opts = opts || <ObjectOptions>{};
-        _.defaults(opts, {
-            realtime: true
-        });
+        opts.realtime = true;
 
-        if (typeof param === 'string') {
+        if (_.isString(param)) {
+            let id: string = <string>param;
+            return this._factory.get(id, this.dataType, opts);
+        }
+
+        return this._factory.create(param, this.dataType, opts);
+    }
+    
+    createSimple(param?: any, opts?: ObjectOptions): Promise<NeutrinoObject> {
+        opts = opts || <ObjectOptions>{};
+        opts.realtime = false;
+
+        if (_.isString(param)) {
             let id: string = <string>param;
             return this._factory.get(id, this.dataType, opts);
         }
@@ -30,12 +40,21 @@ export class Data {
         return this._factory.create(param, this.dataType, opts);
     }
 
-    objects(param?: any): Promise<NeutrinoObject[]> {
+    get(param?: any): Promise<NeutrinoObject[]> {
         param = param || {};
+        param.realtime = true;
+        
+        return this._factory.getMany(this.dataType, param);
+    }
+    
+    getSimple(param?: any): Promise<NeutrinoObject[]> {
+        param = param || {};
+        param.realtime = false;
+        
         return this._factory.getMany(this.dataType, param);
     }
 
-    remove(id: string): Promise<any> {
+    delete(id: string): Promise<any> {
         return this._httpClient.delete(this.dataType, id);
     }
 }

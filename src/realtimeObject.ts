@@ -91,19 +91,20 @@ export class RealtimeObject extends NeutrinoObject {
         });
     }
 
-    remove(): Promise<string> {
+    delete(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this._getWebSocketClient()
                 .callRemove({id: this.id}, null, {notify: true})
                 .then(() => {
-                return resolve(this.id)
-            }, reject);
+                    return resolve(this.id)
+                }, reject);
         });
     }
 
     reset(): Promise<NeutrinoObject> {
         return new Promise<NeutrinoObject>((resolve, reject) => {
-            return this._getWebSocketClient().callRead({id: this.id})
+            return this._getWebSocketClient()
+                .callRead({id: this.id})
                 .then((m: Message) => {
                     this._suspendUpdates();
                     this._reset(m.pld);

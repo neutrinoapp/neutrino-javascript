@@ -54,7 +54,7 @@ export class RealTimeConnection {
 
             let arg = e[0];
             let msg: Message;
-            if (typeof arg === 'string') {
+            if (_.isString(arg)) {
                 msg = JSON.parse(e[0]);
             } else {
                 msg = arg;

@@ -23,7 +23,7 @@ export class Realms {
 
 const connectionsMap: Map<string, RealTimeConnection> = new Map();
 
-if (typeof window !== 'undefined') {
+if (!_.isUndefined(window)) {
     window.onbeforeunload = () => {
         let connections = connectionsMap.values();
         for (let conn of connections) {

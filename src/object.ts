@@ -104,7 +104,7 @@ export class NeutrinoObject {
     }
 
     on(ev: string, cb: any, ignoreSuspendFlags?: boolean): NeutrinoObject {
-        ignoreSuspendFlags = typeof ignoreSuspendFlags === 'undefined' ? true : ignoreSuspendFlags;
+        ignoreSuspendFlags = _.isUndefined(ignoreSuspendFlags) ? true : ignoreSuspendFlags;
 
         let self = this;
 

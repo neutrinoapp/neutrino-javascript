@@ -40,7 +40,7 @@ export class AjaxObject extends NeutrinoObject {
         });
     }
 
-    remove(): Promise<any> {
+    delete(): Promise<any> {
         return this._getHttpClient().delete(this._getDataType(), this.id);
     }
 
